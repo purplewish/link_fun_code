@@ -221,30 +221,32 @@ lines(x0,pspline.fit$fitted.value)
 
 
 ##### link compare gev #####
-source('code/link.compare.R')
-out.gev1 <- link.compare(model = 'gev',ns = 500,nrep = 100,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+source('link_fun_code/link.compare.R')
+ns0 <- 500
+nrep0 <- 100
 
+out.gev1 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev2 <- link.compare(model = 'gev',ns = 500,nrep = 100,min.value = -1.9,max.value = 1.5,model.args = list(beta0=c(1,1),xi=-1),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev2 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.9,max.value = 1.5,model.args = list(beta0=c(1,1),xi=-1),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.logit <- link.compare(model = 'logit',ns = 500,nrep = 100,min.value = -4,max.value = 2,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.logit <- link.compare(model = 'logit',ns = ns0,nrep = nrep0,min.value = -4,max.value = 2,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.probit<- link.compare(model = 'probit',ns = 500,nrep = 100,min.value = -2.5,max.value = 1,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.probit<- link.compare(model = 'probit',ns = ns0,nrep = nrep0,min.value = -2.5,max.value = 1,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit1<- link.compare(model = 'robit',ns = 500,nrep = 100,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit1<- link.compare(model = 'robit',ns = ns0,nrep = nrep0,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit2<- link.compare(model = 'robit',ns = 500,nrep = 100,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit2<- link.compare(model = 'robit',ns = ns0,nrep = nrep0,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.splogit.05<- link.compare(model = 'splogit',ns = 500,nrep = 100,
+out.splogit.05<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
                               min.value = -4,max.value = 0,model.args = list(beta0=c(1,1),r=0.5),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.splogit.01<- link.compare(model = 'splogit',ns = 500,nrep = 100,
+out.splogit.01<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
                               min.value = -4,max.value = 0,model.args = list(beta0=c(1,1),r=0.1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.splogit.2<- link.compare(model = 'splogit',ns = 500,nrep = 100,
+out.splogit.2<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
                              min.value = -2,max.value = 2,model.args = list(beta0=c(1,1),r=2),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.splogit.5<- link.compare(model = 'splogit',ns = 500,nrep = 100,
+out.splogit.5<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
                              min.value = -1.5,max.value = 2,model.args = list(beta0=c(1,1),r=5),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
 
@@ -255,14 +257,11 @@ gr1.out <- cbind(out.logit$gr1,out.probit$gr1,out.robit1$gr1,out.robit2$gr1, out
 gr2.out <- cbind(out.logit$gr2,out.probit$gr2,out.robit1$gr2,out.robit2$gr2, out.gev1$gr2,out.gev2$gr2,out.splogit.05$gr2, out.splogit.5$gr2)
 splogit.rv.mat <- cbind(out.logit$splogit.rv.mat,out.probit$splogit.rv.mat,out.robit1$splogit.rv.mat,out.robit2$splogit.rv.mat, out.gev1$splogit.rv.mat,out.gev2$splogit.rv.mat,out.splogit.05$splogit.rv.mat, out.splogit.5$splogit.rv.mat)
 boundary1.mat <- cbind(out.logit$boundary1,out.probit$boundary1,out.robit1$boundary1,out.robit2$boundary1, out.gev1$boundary1,out.gev2$boundary1,out.splogit.05$boundary1, out.splogit.5$boundary1)
-
 boundary2.mat <- cbind(out.logit$boundary2,out.probit$boundary2,out.robit1$boundary2,out.robit2$boundary2, out.gev1$boundary2,out.gev2$boundary2,out.splogit.05$boundary2, out.splogit.5$boundary2)
+
+save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary2.mat,file = 'output/output500.RData')
 
 
 
 
   
-outf <- matrix(colMeans(mse.out),7,byrow=TRUE)
-print(xtable(outf,digits=rep(6,8)))
-
-colMeans(out.splogit.01$mse.mat)

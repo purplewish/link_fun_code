@@ -1,9 +1,9 @@
 library(evd)
 library(nloptr)
-source('code/robit.em.R')
-source('code/splogit.mle.R')
-source('code/splinelink.R')
-source('code/gev.mle.R')
+source('link_fun_code/robit.em.R')
+source('link_fun_code/splogit.mle.R')
+source('link_fun_code/splinelink.R')
+source('link_fun_code/gev.mle.R')
 # ns: sample size, nrep: number of replication; beta0: true parameters;
 # min.value, max.value: range of independent variables 
 # init: initial values in gev.mle 
