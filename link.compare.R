@@ -33,7 +33,7 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
 
   for(s in 1:nrep)
   {
-    set.seed(s)
+    set.seed(s+79)
     x0 <- sort(runif(ns,min = min.value,max = max.value))
     yita0 <- cbind(1,x0)%*%betav
     

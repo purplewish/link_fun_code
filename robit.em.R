@@ -27,8 +27,8 @@ robit.em <- function(y0,x0,beta0,nu0,tol = 1e-3)
     if(diff.value < tol) {break}
     else{beta.old <- beta.new}   
   }
-  
-  return(list(beta = beta.new))
+  res.eta <- xmat %*% beta.new
+  return(list(beta = beta.new,eta=res.eta))
 }
 
 robit.ecmc <- function(y0,x0,beta0,nu0,tol = 1e-3)
@@ -69,9 +69,10 @@ robit.ecmc <- function(y0,x0,beta0,nu0,tol = 1e-3)
     if(diff.value < tol) {break}
     else{beta.old <- beta.new; nu.old <- nu.new}   
   }
-  yita0 <- as.numeric(xmat%*%beta.new)
+  yita0 <- as.numeric(xmat %*% beta.new)
   prob0 <- pt(q = yita0,df = nu.new)
-  return(list(beta = beta.new, nu = nu.new, fitted.values = prob0))
+  
+  return(list(beta = beta.new, nu = nu.new,eta = yita0,fitted.values = prob0))
 }
 
 robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3)
@@ -123,7 +124,7 @@ robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3)
   }
   yita0 <- as.numeric(xmat%*%beta.new)
   prob0 <- pt(q = yita0,df = nu.new)
-  return(list(beta = beta.new, nu = nu.new, fitted.values = prob0))
+  return(list(beta = beta.new, nu = nu.new, eta = yita0,fitted.values = prob0))
   
 }
 

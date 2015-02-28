@@ -122,7 +122,8 @@ splogit.mle <- function(y0,x0,par0,intervalr)
   beta.est <- out$par
   gr.value <- gr.fun(beta.est)
   fitted.values <- fitted.fun(beta.est,r)
-  return(list(beta = beta.est, r = r, gr=gr.value,convergence = out$convergence,value = out$value,fitted.values=fitted.values))
+  res.eta <- xmat %*% beta.est
+  return(list(beta = beta.est, r = r, eta = res.eta, gr=gr.value,convergence = out$convergence,value = out$value,fitted.values=fitted.values))
 }
 
 
