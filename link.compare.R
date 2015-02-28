@@ -12,10 +12,10 @@ source('link_fun_code/gev.mle.R')
 #including 'logit','probit','robit','gev','splogit'
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
-link.compare<- function(model,ns,nrep,min.value,max.value,
-                    model.args=list(beta0=c(1,1)),
-                  init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
-                    spline.control = list(deg = 3,nknots = 20))                                                                                                                                                                                                                                                                                                  
+link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
+                        model.args=list(beta0=c(1,1)),
+                        init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
+                        spline.control = list(deg = 3,nknots = 20))                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
   mse.logit <- mse.probit <- mse.gev <- mse.gev.new <- mse.robit <- mse.splogit <- mse.pspline <- ks.logit <- ks.probit <- ks.gev <- ks.robit <- ks.splogit <- ks.pspline <- ks.gev.new <- rep(0,nrep)
@@ -29,11 +29,15 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
   deg <- spline.control$deg
   nknots <- spline.control$nknots
   
- betav <- model.args$beta0
-
+  betav <- model.args$beta0
+  
   for(s in 1:nrep)
   {
+<<<<<<< HEAD
     set.seed(s+79)
+=======
+    set.seed(s+s0)
+>>>>>>> 9a7cd6dedd6b442e4cd519b2e55b5c5ef10deef2
     x0 <- sort(runif(ns,min = min.value,max = max.value))
     yita0 <- cbind(1,x0)%*%betav
     
@@ -79,7 +83,7 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
       prob0 <- splogit.link(yita0,r)
       
     }
-
+    
     y0 <- rbinom(ns,size = 1,prob = prob0)
     
     init <- init.args$init
@@ -89,7 +93,7 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
     
     gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(init,init.args$xi0))
     gev.fit.new<- gev.mle.new(y0 = y0,x0 = x0,par0 = c(init,init.args$xi0),maxeval = 3000)
-  
+    
     splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = init,intervalr = init.args$intervalr)
     
     bs.nc <- nknots+deg-1
@@ -97,7 +101,7 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
     
     pspline.lam<- spline.aic(y0,x0,deg=deg,nknots = nknots,kp=1e6,lam.interval = c(0,10000) ,delta0 = delta0,boundary = range(x0),toll =1e-4,  monotone = TRUE)
     
-   pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
+    pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
     
     
     boundary1.n1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
@@ -110,15 +114,15 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
     mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
     mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
     mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
-   
-   
-   max.logit[s] <- max(abs(logit.fit$fitted.values - prob0))
-   max.probit[s] <- max(abs(probit.fit$fitted.values - prob0))
-   max.robit[s] <- max(abs(robit.fit$fitted.values - prob0))
-   max.gev[s] <- max(abs(gev.fit$fitted.values - prob0))
-   max.gev.new[s] <- max(abs(gev.fit.new$fitted.values - prob0))
-   max.splogit[s] <- max(abs(splogit.fit$fitted.values - prob0))
-   max.pspline[s] <- max(abs(pspline.fit$fitted.values - prob0))
+    
+    
+    max.logit[s] <- max(abs(logit.fit$fitted.values - prob0))
+    max.probit[s] <- max(abs(probit.fit$fitted.values - prob0))
+    max.robit[s] <- max(abs(robit.fit$fitted.values - prob0))
+    max.gev[s] <- max(abs(gev.fit$fitted.values - prob0))
+    max.gev.new[s] <- max(abs(gev.fit.new$fitted.values - prob0))
+    max.splogit[s] <- max(abs(splogit.fit$fitted.values - prob0))
+    max.pspline[s] <- max(abs(pspline.fit$fitted.values - prob0))
     
     ks.logit[s] <- ks.test(prob0,logit.fit$fitted.values)$p.value
     ks.probit[s] <- ks.test(prob0,probit.fit$fitted.values)$p.value
@@ -132,15 +136,15 @@ link.compare<- function(model,ns,nrep,min.value,max.value,
     grv1.n1[s,] <- gev.fit$gr
     grv2.n1[s,] <- gev.fit.new$gr
     splogit.rv.n1[s,] <- splogit.fit$gr
-      
+    
     print(s)
   }
   
   mse.mat <- cbind(mse.logit,mse.probit,mse.robit,
                    mse.gev,mse.gev.new,mse.splogit,mse.pspline)
   max.mat <- cbind(max.logit,max.probit,max.robit,
-                  max.gev,max.gev.new,max.splogit,max.pspline)
- 
+                   max.gev,max.gev.new,max.splogit,max.pspline)
+  
   pmat <- cbind(ks.logit,ks.probit,ks.robit,
                 ks.gev,ks.gev.new,ks.splogit,ks.pspline)
   outls <- list(mse.mat = mse.mat, max.mat = max.mat,pmat = pmat, 
