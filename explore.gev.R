@@ -188,7 +188,7 @@ for(s in 1:100)
 xi <- -1
 ns <- 1000
 beta0 <- c(1,1)
-x0 <- sort(runif(ns,min = -1.9,max = 1.5))
+x0 <- sort(runif(ns,min = -1.7,max = 1.4))
 yita0 <- cbind(1,x0)%*%beta0
 prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
 y0 <- rbinom(ns,size = 1,prob = prob0)

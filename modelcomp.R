@@ -223,12 +223,12 @@ lines(x0,pspline.fit$fitted.value)
 
 ##### link compare gev #####
 source('link_fun_code/link.compare.R')
-ns0 <- 500
+ns0 <- 2000
 nrep0 <- 100
 
-out.gev1 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -9.5,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0.1,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev1 <- link.compare(model = 'gev',s0=100,ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0.1,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev2 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.9,max.value = 1.5,model.args = list(beta0=c(1,1),xi=-1),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev2 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.8,max.value = 1.5,model.args = list(beta0=c(1,1),xi=-1),init.args = list(init = c(0.1,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
 out.logit <- link.compare(model = 'logit',ns = ns0,nrep = nrep0,min.value = -4,max.value = 2,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
@@ -267,7 +267,7 @@ boundary1.mat <- cbind(out.logit$boundary1,out.probit$boundary1,out.robit1$bound
 
 boundary2.mat <- cbind(out.logit$boundary2,out.probit$boundary2,out.robit1$boundary2,out.robit2$boundary2, out.gev1$boundary2,out.gev2$boundary2,out.splogit.01$boundary2, out.splogit.05$boundary2,out.splogit.2$boundary2, out.splogit.5$boundary2)
 
-save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary2.mat,file = 'output/output200.RData')
+save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary2.mat,file = 'output/output2000.RData')
 
 
 sqrt(matrix(colMeans(mse.out),ncol=7,byrow=TRUE))
