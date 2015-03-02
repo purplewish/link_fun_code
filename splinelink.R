@@ -65,7 +65,7 @@ splinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,t
     }
   
   value <- -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))
-  out <- list(fitted.values = bs.mu, eta = bs0,trace = traceH,value=value)
+  out <- list(fitted.values = bs.mu, eta = bs.eta,trace = traceH,value=value)
   return(out)
 }
 

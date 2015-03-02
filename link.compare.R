@@ -13,13 +13,14 @@ source('link_fun_code/gev.mle.R')
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
 link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
-                        model.args=list(beta0=c(1,1)),
+                        model.args=list(beta0=c(1,1)),quantile =c(0.1,0.9),
                         init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
                         spline.control = list(deg = 3,nknots = 20))                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
   mse.logit <- mse.probit <- mse.gev <- mse.gev.new <- mse.robit <- mse.splogit <- mse.pspline <- ks.logit <- ks.probit <- ks.gev <- ks.robit <- ks.splogit <- ks.pspline <- ks.gev.new <- rep(0,nrep)
   max.logit <- max.probit <- max.gev <- max.gev.new <- max.robit <- max.splogit <- max.pspline <- rep(0,nrep) 
+  qtle.logit <- qtle.probit <- qtle.gev <- qtle.gev.new <- qtle.robit <- qtle.splogit <- qtle.pspline <- matrix(0,nrep,length(quantile))
   
   #### gradient ####
   grv1.n1<- grv2.n1 <- matrix(0,nrep,3)
@@ -33,11 +34,7 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
   
   for(s in 1:nrep)
   {
-<<<<<<< HEAD
-    set.seed(s+79)
-=======
     set.seed(s+s0)
->>>>>>> 9a7cd6dedd6b442e4cd519b2e55b5c5ef10deef2
     x0 <- sort(runif(ns,min = min.value,max = max.value))
     yita0 <- cbind(1,x0)%*%betav
     
@@ -132,6 +129,15 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
     ks.splogit[s] <- ks.test(prob0,splogit.fit$fitted.values)$p.value
     ks.pspline[s] <- ks.test(prob0,pspline.fit$fitted.values)$p.value
     
+    xmat <- cbind(1,x0)
+    qtle.logit[s,] <- quantile(xmat%*%coef(logit.fit),probs = quantile)
+    qtle.probit[s,] <- quantile(xmat%*%coef(probit.fit),probs = quantile)
+    qtle.robit[s,] <- quantile(robit.fit$eta,probs = quantile)
+    qtle.gev[s,] <- quantile(gev.fit$eta,probs = quantile)
+    qtle.gev.new[s,] <- quantile(gev.fit.new$eta,probs = quantile)
+    qtle.splogit[s,] <- quantile(splogit.fit$eta,probs = quantile)
+    qtle.pspline[s,] <- quantile(pspline.fit$eta,probs = quantile)
+    
     
     grv1.n1[s,] <- gev.fit$gr
     grv2.n1[s,] <- gev.fit.new$gr
@@ -147,8 +153,10 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
   
   pmat <- cbind(ks.logit,ks.probit,ks.robit,
                 ks.gev,ks.gev.new,ks.splogit,ks.pspline)
+  
+  qtle.list <- list(logit = qtle.logit,probit = qtle.probit,robit = qtle.robit,gev = qtle.gev,gev.new = qtle.gev.new,splogit = qtle.splogit,pspline = qtle.pspline)
   outls <- list(mse.mat = mse.mat, max.mat = max.mat,pmat = pmat, 
-                gr1 = grv1.n1, gr2 = grv2.n1, boundary1 = boundary1.n1, boundary2 = boundary2.n1,splogit.rv = splogit.rv.n1)
+                gr1 = grv1.n1, gr2 = grv2.n1, boundary1 = boundary1.n1, boundary2 = boundary2.n1,splogit.rv = splogit.rv.n1,qtle=qtle.list)
   return(outls)
 }
 

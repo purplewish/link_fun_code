@@ -1,8 +1,8 @@
 ### 
-source('code/robit.em.R')
-source('code/splogit.mle.R')
-source('code/splinelink.R')
-source('code/gev.mle.R')
+source('link_fun_code/robit.em.R')
+source('link_fun_code/splogit.mle.R')
+source('link_fun_code/splinelink.R')
+source('link_fun_code/gev.mle.R')
 library(evd)
 
 #### true model is GEV ####
@@ -223,8 +223,8 @@ lines(x0,pspline.fit$fitted.value)
 
 ##### link compare gev #####
 source('link_fun_code/link.compare.R')
-ns0 <- 2000
-nrep0 <- 100
+ns0 <- 500
+nrep0 <- 10
 
 out.gev1 <- link.compare(model = 'gev',s0=100,ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0.1,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
