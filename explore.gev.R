@@ -1,6 +1,6 @@
 ##### simulation for GEV ####
-source('code/gev.mle.R')
-source('code/splinelink.R')
+source('link_fun_code/gev.mle.R')
+source('link_fun_code/splinelink.R')
 library(nloptr)
 library(evd)
 library(mgcv)
@@ -141,7 +141,9 @@ ggplot(data.frame(x=c(-7, 7)), aes(x)) +
 dev.off()
 
 
-
+ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
+  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = gev.fit.new$est[3]),aes(color='gev1'))+
+  stat_function(fun = function(x) plogis(x), aes(color='gev2' ))
 
 ##### check gradient value and boundary in gev distribution######
 source('code/gev.mle.R')
@@ -172,7 +174,8 @@ for(s in 1:100)
   res.logit <- glm(y0~x0,family = 'binomial')
   coef(res.logit)
   gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(coef(res.logit),-2))
-  res1 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(coef(res.logit),-2),maxeval = 3000)
+  res1 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0.9,0.9,-2.2),maxeval = 3000)
+  res1$gr
   grv1[s,] <- gev.fit$gr
   grv2[s,] <- res1$gr
   boundary1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
@@ -185,8 +188,9 @@ for(s in 1:100)
 
 #### xi =-1 ####
 
+set.seed(28)
 xi <- -1
-ns <- 1000
+ns <- 500
 beta0 <- c(1,1)
 x0 <- sort(runif(ns,min = -1.7,max = 1.4))
 yita0 <- cbind(1,x0)%*%beta0
@@ -327,3 +331,27 @@ for(s in 1:len.xi)
 }
 
 plot(xiv,valuep)
+
+
+
+
+################# explore the existence ######
+set.seed(28)
+xi <- -1
+ns <- 500
+beta0 <- c(1,1)
+x0 <- sort(runif(ns,min = -1.9,max = 1.5))
+yita0 <- cbind(1,x0)%*%beta0
+prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
+y0 <- rbinom(ns,size = 1,prob = prob0)
+summary(prob0)
+table(y0)
+
+res.gev1 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(1,1,-1),maxeval = 3000)
+res.gev2 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0,0,1),maxeval = 3000)
+which.min(1-res.gev2$est[3]*cbind(1,x0)%*%res.gev2$est[1:2])
+yita.est <- cbind(1,x0)%*%res.gev$est[1:2]
+
+summary(log(1-pgev(q = -yita.est,loc = 0,scale = 1,shape = res.gev$est[3])))
+res.gev$est
+res.gev$value

@@ -48,3 +48,19 @@ sum(pred.logit[x0>-2]>=0.5)
 
 pred.mg <- predict.gam(mg.fit,newdata = data.frame(x0=x0),type='response')
 sum(pred.mg[x0>-2] >= 0.5)
+
+##################### test ##########
+ns <- 200
+x0 <- sort(runif(ns,-3,2.5))
+prob0 <- exp(cbind(1,x0)%*%c(1,1))/(1+exp(cbind(1,x0)%*%c(1,1)))
+y0 <- rbinom(ns,size = 1,prob = prob0)
+
+init <- init.args$init
+logit.fit <- glm(y0~x0,family = binomial(link='logit'))
+probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
+robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = c(1,1),nu0 = 1,tol = 1e-3) 
+
+gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(0,0,0.1))
+gev.fit.new<- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0,0,1),maxeval = 3000)
+
+splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = init,intervalr = init.args$intervalr)
