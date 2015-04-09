@@ -251,13 +251,13 @@ out.splogit.5<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
                              min.value = -1.2,max.value = 2,model.args = list(beta0=c(1,1),r=5),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
 
-mse.out <-  cbind(out.logit$mse.mat,out.probit$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.splogit.01$mse.mat,out.splogit.05$mse.mat, out.splogit.2$mse.mat,out.splogit.5$mse.mat)
 
+mse.out <-  cbind(out.logit$mse.mat,out.probit$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.splogit.01$mse.mat,out.splogit.05$mse.mat, out.splogit.2$mse.mat,out.splogit.5$mse.mat)
 
 
 save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary2.mat,file = 'output/output2000.RData')
 
 
-sqrt(matrix(colMeans(mse.out),ncol=7,byrow=TRUE))
-
-  
+source('link_fun_code/tab.fig.fun.R')
+res100 <- tab.fig.fun(mse.out)
+res100$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
