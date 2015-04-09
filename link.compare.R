@@ -1,5 +1,6 @@
 library(evd)
 library(nloptr)
+library(bgeva)
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
 source('link_fun_code/splinelink.R')
@@ -92,7 +93,7 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
     gev.fit.new<- gev.mle.new(y0 = y0,x0 = x0,par0 = c(init,init.args$xi0),maxeval = 3000)
     
     splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = init,intervalr = init.args$intervalr)
-    
+   
     bs.nc <- nknots+deg-1
     delta0 <- rep(1/bs.nc,bs.nc)
     
@@ -100,7 +101,18 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
     
     pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
     
+   # bgeva.fun <- function(tauv)
+   # {
+   #   bgeva.fit <- bgeva(y0 ~ s(x0),tau = tauv)
+   #   return(bgeva.fit$logL)
+   # }
+
+    fb <- optimize(f = bgeva.fun,interval = c(-2,1))
+    bgeva.fit <- bgeva(y0~ s(x0),tau = fb$minimum)
     
+    prob.gev <-  pgev(q = bgeva.fit$eta,loc = 0,scale = 1,shape = fb$minimum)
+    
+  
     boundary1.n1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
     boundary2.n1[s] <- min(1-gev.fit.new$est[3]*cbind(1,x0)%*%gev.fit.new$est[1:2])
     
