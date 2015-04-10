@@ -127,6 +127,15 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
     mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
     mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
     mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
+   
+   aic.logit[s] <- logit.fit$aic
+   aic.probit[s] <- probit.fit$aic
+   aic.robit[s] <- robit.fit$aic
+   aic.gev[s] <- gev.fit$aic
+   aic.gev.new[s] <- gev.fit.new$aic
+   aic.splogit[s] <- splogit.fit$aic
+   aic.pspline[s] <- AIC.value( pspline.fit,y0)
+   
     
     
     max.logit[s] <- max(abs(logit.fit$fitted.values - prob0))
