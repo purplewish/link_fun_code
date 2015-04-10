@@ -27,11 +27,9 @@ gev.mle <- function(x0,y0,xi0,par0=c(0,0))
   covm <- solve(out$hessian)
   yita.est <- xmat%*%est
   gr.value <- gr.gev(est)
-  gr.value
-  summary(1-yita.est)
   fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = xi)
-  
-  outls <- list(est=est,covm=covm,fitted.values=fitted.values)
+  aic <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values)) + 2*(length(par0)+1)
+  outls <- list(est=est,covm=covm,fitted.values=fitted.values,aic = aic)
   return(outls)
 }
 
@@ -114,7 +112,9 @@ gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
   gr.value <- gr.gev(est)
   fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[3])
   
-  outls <- list(est=est,eta = yita.est,ovm=covm,gr=gr.value,fitted.values=fitted.values,convergence = out$convergence,value=out$value)
+  aic <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values)) + 2*(length(par0))
+  
+  outls <- list(est=est,eta = yita.est,ovm=covm,gr=gr.value,fitted.values=fitted.values,convergence = out$convergence,value=out$value,aic=aic)
   return(outls)
 }
 
@@ -166,7 +166,8 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
   yita.est <- xmat%*%est[1:2]
   gr.value <- gr.gev(est)
   fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[3])
-  outls <- list(est=est,eta=yita.est,gr=gr.value,fitted.values=fitted.values,value=res$objective,message = res$message)
+  aic <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values)) + 2*(length(par0))
+  outls <- list(est=est,eta=yita.est,gr=gr.value,fitted.values=fitted.values,value=res$objective,message = res$message,aic=aic)
   return(outls)
 }
 

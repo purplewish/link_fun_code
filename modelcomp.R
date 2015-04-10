@@ -21,7 +21,7 @@ logit.fit <- glm(y0~x0,family = binomial(link='logit'))
 beta0 <- logit.fit$coefficients
 probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
 gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(0,0,-1))
-res1 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(1,1,1),maxeval = 3000)
+gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(1,1,1),maxeval = 3000)
 robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = beta0,nu0 = 2,tol = 1e-3) 
 splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0.1,0),intervalr = c(0,3))
 
@@ -42,7 +42,7 @@ plot(x0,prob0,type='l')
 lines(x0,logit.fit$fitted.values)
 lines(x0,probit.fit$fitted.values)
 lines(x0,gev.fit$fitted.values)
-lines(x0,res1$fitted.values)
+lines(x0,gev.fit.new$fitted.values)
 lines(x0,robit.fit$fitted.values)
 lines(x0,splogit.fit$fitted.values)
 lines(x0,pspline.fit$fitted.value)
@@ -68,7 +68,7 @@ for(s in 1:100)
   beta0 <- logit.fit$coefficients
   probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
   gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(0,0,-1))
-  res1 <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0,0,-1),maxeval = 3000)
+  gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0,0,-1),maxeval = 3000)
   robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = c(0,0),nu0 = 2,tol = 1e-3) 
   splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0,0),intervalr = c(0.03,10))
   
@@ -85,12 +85,12 @@ for(s in 1:100)
   
   
   boundary1.n1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
-  boundary2.n1[s] <- min(1-res1$est[3]*cbind(1,x0)%*%res1$est[1:2])
+  boundary2.n1[s] <- min(1-gev.fit.new$est[3]*cbind(1,x0)%*%gev.fit.new$est[1:2])
   
   mse.logit[s] <- mean((logit.fit$fitted.values - prob0)^2)
   mse.probit[s] <- mean((probit.fit$fitted.values - prob0)^2)
   mse.gev[s] <- mean((gev.fit$fitted.values - prob0)^2)
-  mse.gev.new[s] <- mean((res1$fitted.values - prob0)^2)
+  mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
   mse.robit[s] <- mean((robit.fit$fitted.values - prob0)^2)
   mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
   mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
@@ -98,14 +98,14 @@ for(s in 1:100)
   ks.logit[s] <- ks.test(prob0,logit.fit$fitted.values)$p.value
   ks.probit[s] <- ks.test(prob0,probit.fit$fitted.values)$p.value
   ks.gev[s] <- ks.test(prob0,gev.fit$fitted.values)$p.value
-  ks.gev.new[s] <- ks.test(prob0,res1$fitted.values)$p.value
+  ks.gev.new[s] <- ks.test(prob0,gev.fit.new$fitted.values)$p.value
   ks.robit[s] <- ks.test(prob0,robit.fit$fitted.values)$p.value
   ks.splogit[s] <- ks.test(prob0,splogit.fit$fitted.values)$p.value
   ks.pspline[s] <- ks.test(prob0,pspline.fit$fitted.values)$p.value
   
   
   grv1.n1[s,] <- gev.fit$gr
-  grv2.n1[s,] <- res1$gr
+  grv2.n1[s,] <- gev.fit.new$gr
   splogit.rv.n1[s,] <- splogit.fit$gr
   
   print(s)
@@ -160,7 +160,7 @@ for(s in 1:100)
   beta0 <- logit.fit$coefficients
   probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
   gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(1,1,1))
- r <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0.1,0.1,1),maxeval = 3000)
+  gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0.1,0.1,1),maxeval = 3000)
   robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = c(0,0),nu0 = 2,tol = 1e-3) 
   splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0,0),intervalr = c(0.01,10))
   
@@ -177,12 +177,12 @@ for(s in 1:100)
   
   
   boundary1.p1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
-  boundary2.p1[s] <- min(1-res1$est[3]*cbind(1,x0)%*%res1$est[1:2])
+  boundary2.p1[s] <- min(1-gev.fit.new$est[3]*cbind(1,x0)%*%gev.fit.new$est[1:2])
   
   mse.logit[s] <- mean((logit.fit$fitted.values - prob0)^2)
   mse.probit[s] <- mean((probit.fit$fitted.values - prob0)^2)
   mse.gev[s] <- mean((gev.fit$fitted.values - prob0)^2)
-  mse.gev.new[s] <- mean((res1$fitted.values - prob0)^2)
+  mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
   mse.robit[s] <- mean((robit.fit$fitted.values - prob0)^2)
   mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
   mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
@@ -190,14 +190,14 @@ for(s in 1:100)
   ks.logit[s] <- ks.test(prob0,logit.fit$fitted.values)$p.value
   ks.probit[s] <- ks.test(prob0,probit.fit$fitted.values)$p.value
   ks.gev[s] <- ks.test(prob0,gev.fit$fitted.values)$p.value
-  ks.gev.new[s] <- ks.test(prob0,res1$fitted.values)$p.value
+  ks.gev.new[s] <- ks.test(prob0,gev.fit.new$fitted.values)$p.value
   ks.robit[s] <- ks.test(prob0,robit.fit$fitted.values)$p.value
   ks.splogit[s] <- ks.test(prob0,splogit.fit$fitted.values)$p.value
   ks.pspline[s] <- ks.test(prob0,pspline.fit$fitted.values)$p.value
   
   
   grv1.p1[s,] <- gev.fit$gr
-  grv2.p1[s,] <- res1$gr
+  grv2.p1[s,] <- gev.fit.new$gr
   splogit.rv.p1[s,] <- splogit.fit$gr
   
   print(s)
@@ -214,7 +214,7 @@ plot(x0,prob0,type='l')
 lines(x0,logit.fit$fitted.values)
 lines(x0,probit.fit$fitted.values)
 lines(x0,gev.fit$fitted.values)
-lines(x0,res1$fitted.values)
+lines(x0,gev.fit.new$fitted.values)
 lines(x0,robit.fit$fitted.values)
 lines(x0,splogit.fit$fitted.values)
 lines(x0,pspline.fit$fitted.value)
@@ -259,5 +259,11 @@ save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary
 
 
 source('link_fun_code/tab.fig.fun.R')
-res100 <- tab.fig.fun(mse.out)
-res100$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+
+load('output/output1000.RData')
+res <- tab.fig.fun(mse.out)
+res$mse
+gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+pdf('document/figures/comparison/plot1000_rel.pdf',width = 10,height = 6)
+gg
+dev.off()

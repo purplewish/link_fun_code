@@ -23,6 +23,10 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
   max.logit <- max.probit <- max.gev <- max.gev.new <- max.robit <- max.splogit <- max.pspline <- rep(0,nrep) 
   qtle.logit <- qtle.probit <- qtle.gev <- qtle.gev.new <- qtle.robit <- qtle.splogit <- qtle.pspline <- matrix(0,nrep,length(quantile))
   
+  
+  #### aic ##### 
+  aic.logit <- aic.probit <- aic.gev <- aic.gev.new <- aic.robit <- aic.splogit <- aic.pspline  <- rep(0,nrep)
+  
   #### gradient ####
   grv1.n1<- grv2.n1 <- matrix(0,nrep,3)
   splogit.rv.n1 <- matrix(0,nrep,2)
