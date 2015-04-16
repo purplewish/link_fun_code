@@ -1,16 +1,34 @@
 #### algorithm #### 
 #### something wrong with identification ####
+library(actuar)
 deg <- 3
 nknots <- 6
 tol <- 1e-8
 monotone = TRUE
 boundary = c(-5,5)
+
+### standardized x and determine the value of a###
+xmat <- cbind(x1,x2)
+xmats <- scale(xmat)
+
+atu <- quantile(sqrt(rowSums(xmats^2)),0.999)
+
 ### initial value of beta ####
-glm.fit.logit <- glm(y0~x0,family = binomial())
-beta0 <- coef(glm.fit.logit)
+glm.fit.logit <- glm(y0~0+x1+x2,family = binomial())
+beta00 <- coef(glm.fit.logit)
+beta00 <- beta00/sqrt(sum(beta00^2))
+eta.old <- xmats%*%beta00
+q.old <- (eta.old/atu+1)/2
+d.value <- 2
+Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
+
+nknots <- 7
 bs.nc <- nknots+deg-1
 delta0 <- rep(1/bs.nc,bs.nc)
+knots <- seq(0,1,length.out = nknots)
 
+beta.old <- beta00
+delta.old <- delta0
 link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,boundary)
 {
   xmat <- cbind(1,x0)
@@ -23,21 +41,25 @@ link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,
       beta.comp <- beta.old
       delta.comp <- delta.old
       
-      eta.old <- xmat%*%beta.old
-      eta.old <- (eta.old - mean(eta.old))/sqrt(mean((eta.old - mean(eta.old))^2))
-      knots <- quantile(eta.old,seq(0,1,1/(nknots-1)))
-      bs0 <- bs(eta.old,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = boundary,intercept=TRUE)
+      eta.old <- xmats%*%beta.comp
+      q.old <- (eta.old/atu+1)/2
+      d.value <- 2
+      Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
+      bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,intercept=TRUE)
+      delta.old <- coef(glm(y0~0+bs0))
       
     if(!monotone)
     {
       repeat
       {
+        
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
-        delta.update <- solve(t(bs0)%*%wt%*%bs0)%*%t(bs0)%*%wt%*%z
+        delta.update <- ginv(t(bs0)%*%wt%*%bs0)%*%t(bs0)%*%wt%*%z
         diff.value <- mean((delta.update-delta.old)^2)
+        print(delta.update)
         delta.old <- delta.update
         if(diff.value <= tol){break}
       }  
@@ -57,8 +79,9 @@ link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
-        delta.update <- solve(t(bs0)%*%wt%*%bs0 + kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+        delta.update <- ginv(t(bs0)%*%wt%*%bs0 + kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         diff.value <- mean((delta.update-delta.old)^2)
+        print(delta.update)
         delta.old <- delta.update
         if(diff.value <= tol){break}
         

@@ -125,7 +125,7 @@ robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3)
   yita0 <- as.numeric(xmat%*%beta.new)
   prob0 <- pt(q = yita0,df = nu.new)
   ### aic #### 
-  aic <- -2*sum(y0*log(prob0/(1-prob0))+log(1-prop0)) + 2*(length(beta0)+1)
+  aic <- -2*sum(y0*log(prob0/(1-prob0))+log(1-prob0)) + 2*(length(beta0)+1)
   return(list(beta = beta.new, nu = nu.new, eta = yita0,fitted.values = prob0,aic=aic))
   
 }

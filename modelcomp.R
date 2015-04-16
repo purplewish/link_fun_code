@@ -223,7 +223,7 @@ lines(x0,pspline.fit$fitted.value)
 
 ##### comparison #####
 source('link_fun_code/link.compare.R')
-ns0 <- 100
+ns0 <- 500
 nrep0 <- 100
 
 out.gev1 <- link.compare(model = 'gev',s0=100,ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0.1,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
@@ -266,4 +266,31 @@ res$mse
 gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
 pdf('document/figures/comparison/plot1000_rel.pdf',width = 10,height = 6)
 gg
+dev.off()
+
+
+zz <- t(apply(out.gev1$aic[,-4],1,function(x){x - x[4]}))
+
+zznew <- cbind(index= 1:100,zz[,-4])
+zznew <- as.data.frame(zznew)
+
+zz.melt <- melt(data = zznew,id.vars = 'index',value.name = 'aic',variable.name='model')
+g1 <- ggplot(zz.melt,aes(x=index,y=aic,color=model))+geom_point()+theme_bw()+ggtitle('gev')+geom_hline(yintercept=0)
+
+zz1 <- t(apply(out.logit$aic[,-4],1,function(x){x - x[1]}))
+
+zznew1 <- cbind(index= 1:100,zz1[,-1])
+zznew1 <- as.data.frame(zznew1)
+
+zz.melt1 <- melt(data = zznew1,id.vars = 'index',value.name = 'aic',variable.name='model')
+g2 <- ggplot(zz.melt1,aes(x=index,y=aic,color=model))+geom_point()+theme_bw()+ggtitle('logit')+geom_hline(yintercept=0)
+
+
+
+g12 <- list()
+g12[[1]] <- g1
+g12[[2]] <- g2
+
+pdf('figures/gev_logit.pdf')
+print(g12)
 dev.off()

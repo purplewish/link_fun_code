@@ -111,10 +111,10 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
    #   return(bgeva.fit$logL)
    # }
 
-    fb <- optimize(f = bgeva.fun,interval = c(-2,1))
-    bgeva.fit <- bgeva(y0~ s(x0),tau = fb$minimum)
+   # fb <- optimize(f = bgeva.fun,interval = c(-2,1))
+   # bgeva.fit <- bgeva(y0~ s(x0),tau = fb$minimum)
     
-    prob.gev <-  pgev(q = bgeva.fit$eta,loc = 0,scale = 1,shape = fb$minimum)
+    #prob.gev <-  pgev(q = bgeva.fit$eta,loc = 0,scale = 1,shape = fb$minimum)
     
   
     boundary1.n1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
@@ -173,6 +173,10 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
   
   mse.mat <- cbind(mse.logit,mse.probit,mse.robit,
                    mse.gev,mse.gev.new,mse.splogit,mse.pspline)
+  
+  aic.mat <- cbind(aic.logit,aic.probit,aic.robit,
+                   aic.gev,aic.gev.new,aic.splogit,aic.pspline)
+  
   max.mat <- cbind(max.logit,max.probit,max.robit,
                    max.gev,max.gev.new,max.splogit,max.pspline)
   
@@ -181,7 +185,7 @@ link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
   
   qtle.list <- list(logit = qtle.logit,probit = qtle.probit,robit = qtle.robit,gev = qtle.gev,gev.new = qtle.gev.new,splogit = qtle.splogit,pspline = qtle.pspline)
   outls <- list(mse.mat = mse.mat, max.mat = max.mat,pmat = pmat, 
-                gr1 = grv1.n1, gr2 = grv2.n1, boundary1 = boundary1.n1, boundary2 = boundary2.n1,splogit.rv = splogit.rv.n1,qtle=qtle.list)
+                gr1 = grv1.n1, gr2 = grv2.n1, boundary1 = boundary1.n1, boundary2 = boundary2.n1,splogit.rv = splogit.rv.n1,qtle=qtle.list,aic.mat=aic.mat)
   return(outls)
 }
 
