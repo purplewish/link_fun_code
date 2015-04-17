@@ -1,6 +1,7 @@
 ### gev.mle for fixed xi
 ### gev.mle.xi xi is a parameter
-
+library(nloptr)
+library(evd)
 gev.mle <- function(x0,y0,xi0,par0=c(0,0))
 {
   xmat <- cbind(1,x0)
@@ -80,12 +81,14 @@ gev.profile <- function(x0,y0,xi,par0=c(0,0),maxeval = 3000)
 ##### xi is a parameter to estimate #####
 gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
 {
+  
   xmat <- cbind(1,x0)
   nr <- length(y0)
+  ncx <- ncol(xmat)
   nll <- function(para)
   {
-    beta0 <- para[1:2]
-    xi <- para[3]
+    beta0 <- para[1:(ncx)]
+    xi <- para[ncx+1]
     yita <- xmat%*%beta0
     prob <- 1- pgev(-yita,loc = 0,scale = 1,shape = xi)
     nllv <- sum(y0*(log(prob)-log(1-prob)))+sum(log(1-prob))
@@ -94,8 +97,8 @@ gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
   
   gr.gev <- function(para)
   {
-    beta.est <- para[1:2]
-    xi <- para[3]
+    beta.est <- para[1:(ncx)]
+    xi <- para[ncx+1]
     eta.est <- xmat%*%beta.est
     elem <- apply(1- xi*(eta.est),1,function(x){max(0,x)})
     coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
@@ -108,9 +111,9 @@ gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
   
   est <-  out$par
   covm <- solve(out$hessian)
-  yita.est <- xmat%*%(est[1:2])
+  yita.est <- xmat%*%(est[1:ncx])
   gr.value <- gr.gev(est)
-  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[3])
+  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[ncx+1])
   
   aic <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values)) + 2*(length(par0))
   
@@ -123,10 +126,11 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
 {
   xmat <- cbind(1,x0)
   nr <- length(y0) 
+  ncx <- ncol(xmat)
   nll <- function(x,xmat)
   {
-    yita <- xmat%*%x[1:2]
-    xi <- x[3]
+    yita <- xmat%*%x[1:ncx]
+    xi <- x[ncx+1]
     prob <- 1- pgev(-yita,loc = 0,scale = 1,shape = xi)
     nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(log(1-prob)) 
     
@@ -141,18 +145,17 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
   
   eval_g1 <- function(x, xmat ) 
   {
-    yita.est <- xmat%*%x[1:2]
-    return( list("constraints"= yita.est*x[3] - 1,
-                 "jacobian"= cbind(x[3]*xmat,yita.est)) )
+    yita.est <- xmat%*%x[1:ncx]
+    return( list("constraints"= yita.est*x[ncx+1] - 1,
+                 "jacobian"= cbind(x[ncx+1]*xmat,yita.est)) )
   }
   
   res <- nloptr( x0=par0, eval_f=nll, eval_g_ineq = eval_g1, 
-                 opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval),
-                 xmat = xmat )  
+                 opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval),xmat = xmat )  
   gr.gev <- function(para)
   {
-    beta.est <- para[1:2]
-    xi <- para[3]
+    beta.est <- para[1:ncx]
+    xi <- para[ncx+1]
     eta.est <- xmat%*%beta.est
     elem <- apply(1- xi*(eta.est),1,function(x){max(0,x)})
     coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
@@ -163,9 +166,9 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
   }
   
   est <-  res$solution
-  yita.est <- xmat%*%est[1:2]
+  yita.est <- xmat%*%est[1:ncx]
   gr.value <- gr.gev(est)
-  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[3])
+  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = est[ncx+1])
   aic <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values)) + 2*(length(par0))
   outls <- list(est=est,eta=yita.est,gr=gr.value,fitted.values=fitted.values,value=res$objective,message = res$message,aic=aic)
   return(outls)

@@ -14,21 +14,23 @@ xmats <- scale(xmat)
 atu <- quantile(sqrt(rowSums(xmats^2)),0.999)
 
 ### initial value of beta ####
-glm.fit.logit <- glm(y0~0+x1+x2,family = binomial())
+glm.fit.logit <- glm(y0~0+x1+x2,data = as.data.frame(cbind(y0,xmats)),family = binomial())
 beta00 <- coef(glm.fit.logit)
 beta00 <- beta00/sqrt(sum(beta00^2))
+beta00 <- sqrt(0.5)*sign(beta00)
 eta.old <- xmats%*%beta00
 q.old <- (eta.old/atu+1)/2
 d.value <- 2
 Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
 
-nknots <- 7
+nknots <- 20
 bs.nc <- nknots+deg-1
-delta0 <- rep(1/bs.nc,bs.nc)
+delta0 <- rep(0,bs.nc)
 knots <- seq(0,1,length.out = nknots)
 
 beta.old <- beta00
 delta.old <- delta0
+
 link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,boundary)
 {
   xmat <- cbind(1,x0)
@@ -43,9 +45,13 @@ link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,
       
       eta.old <- xmats%*%beta.comp
       q.old <- (eta.old/atu+1)/2
-      d.value <- 2
+      d.value <- 6
       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
+      
       bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,intercept=TRUE)
+      
+      knots <- seq(min(eta.old),max(eta.old),length.out = )
+      bs0 <- bs(eta.old,knots=knots[c(-1,-length(knots))],degree=deg,intercept=TRUE)
       delta.old <- coef(glm(y0~0+bs0,family = 'binomial'))
       
     if(!monotone)
@@ -54,11 +60,15 @@ link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,
       {       
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
-        wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
-        z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
-        delta.update <- solve(t(bs0)%*%wt%*%bs0)%*%t(bs0)%*%wt%*%z
-        print(delta.update)
+        index <-  bs.mu > .Machine$double.eps
+        wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
+        z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
+        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,])%*%t(bs0[index,])%*%wt%*%z
+        #print(delta.update)
+        diff.value <- mean((delta.update-delta.old)^2)
         delta.old <- delta.update
+        print(diff.value)
+        print(sum(!index))
         if(diff.value <= tol){break}
       }  
     }
