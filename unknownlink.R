@@ -46,19 +46,17 @@ link.est <- function(y0,x0,deg = 3,nknots,monotone=TRUE,beta0,delta0,tol = 1e-8,
       d.value <- 2
       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
       bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,intercept=TRUE)
-      delta.old <- coef(glm(y0~0+bs0))
+      delta.old <- coef(glm(y0~0+bs0,family = 'binomial'))
       
     if(!monotone)
     {
       repeat
-      {
-        
+      {       
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
-        delta.update <- ginv(t(bs0)%*%wt%*%bs0)%*%t(bs0)%*%wt%*%z
-        diff.value <- mean((delta.update-delta.old)^2)
+        delta.update <- solve(t(bs0)%*%wt%*%bs0)%*%t(bs0)%*%wt%*%z
         print(delta.update)
         delta.old <- delta.update
         if(diff.value <= tol){break}
