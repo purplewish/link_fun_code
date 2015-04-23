@@ -15,7 +15,7 @@ source('link_fun_code/gev.mle.R')
 # inital values of xi r and nu 
 link.compare<- function(model,s0=0,ns,nrep,min.value,max.value,
                         model.args=list(beta0=c(1,1)),quantile =c(0.1,0.9),
-                        init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
+                        init.args=list(init=c(0,0),xi0 =1,r0=1,nu0=2,intervalr=c(0.03,10)),
                         spline.control = list(deg = 3,nknots = 20))                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
