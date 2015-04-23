@@ -37,11 +37,8 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,monotone=TRUE,b
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
         delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,])%*%t(bs0[index,])%*%wt%*%z
-        #print(delta.update)
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
-        #print(diff.value)
-        #print(sum(!index))
         if(diff.value <= tol){break}
       }  
     }
@@ -67,7 +64,6 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,monotone=TRUE,b
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
         delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
-        #print(delta.update)
         delta.old <- delta.update
         if(diff.value <= tol){break}
         

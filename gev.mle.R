@@ -34,50 +34,6 @@ gev.mle <- function(x0,y0,xi0,par0=c(0,0))
   return(outls)
 }
 
-
-
-###### xi is known, and use nloptr ####
-gev.profile <- function(x0,y0,xi,par0=c(0,0),maxeval = 3000)
-{
-  xmat <- cbind(1,x0)
-  nr <- length(y0)
-  nll <- function(para,xmat,xi)
-  {
-    yita <- xmat%*%para
-    prob <- 1- pgev(-yita,loc = 0,scale = 1,shape = xi)
-    nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(log(1-prob))
-    elem <- apply(1- xi*(yita),1,function(x){max(0,x)})
-    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
-    gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
-    return( list("objective"=nllv, 
-                 "gradient"= gr.beta ) )
-  }
-  
-  eval_g1 <- function(para,xmat,xi) 
-  {
-    yita.est <- xmat%*%para
-    return( list("constraints"= yita.est*xi - 1,
-                 "jacobian"= xi*xmat) )
-  }
-  
-  
-  res <- nloptr(x0=par0, eval_f=nll, eval_g_ineq = eval_g1, 
-                opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval), xmat = xmat,xi=xi )  
-  est <-  res$solution
-  yita.est <- xmat%*%est
-  gr.gev <- function(beta.est)
-  {
-    eta.est <- xmat%*%beta.est
-    elem <- apply(1- xi*(eta.est),1,function(x){max(0,x)})
-    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
-    gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
-    return(gr.beta)
-  }
-  gr.value <- gr.gev(est)
-  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = xi)
-  outls <- list(est=est,gr=gr.value,fitted.values=fitted.values,value=res$objective,message = res$message)
-}
-
 ##### xi is a parameter to estimate #####
 gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
 {
@@ -121,6 +77,51 @@ gev.mle.xi <- function(x0,y0,par0=c(0,0,0.5))
   return(outls)
 }
 
+
+###### xi is known, and use nloptr ####
+gev.profile <- function(x0,y0,xi,par0=c(0,0),range=c(-1,1),maxeval = 3000)
+{
+  xmat <- cbind(1,x0)
+  nr <- length(y0)
+  nll <- function(x,xmat,xi)
+  {
+    yita <- xmat%*%x
+    prob <- 1- pgev(-yita,loc = 0,scale = 1,shape = xi)
+    nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(log(1-prob)) 
+    
+    elem <- apply(1- xi*(yita),1,function(x){max(0,x)})
+    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
+    gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
+    return( list("objective"=nllv, 
+                 "gradient"= gr.beta ) )
+  }
+  
+  eval_g1 <- function(x,xmat,xi) 
+  {
+    yita.est <- xmat%*%x
+    return( list("constraints"= yita.est*xi - 1,
+                 "jacobian"= xi*xmat) )
+  }
+  
+  
+  res <- nloptr(x0=par0, eval_f=nll, eval_g_ineq = eval_g1, 
+                opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval), xmat = xmat,xi=xi )  
+    
+  est <-  res$solution
+  yita.est <- xmat%*%est
+  gr.gev <- function(beta.est)
+  {
+    eta.est <- xmat%*%beta.est
+    elem <- apply(1- xi*(eta.est),1,function(x){max(0,x)})
+    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
+    gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
+    return(gr.beta)
+  }
+  gr.value <- gr.gev(est)
+  fitted.values <- 1- pgev(-yita.est,loc = 0,scale = 1,shape = xi)
+  outls <- list(est=est,gr=gr.value,fitted.values=fitted.values,value=res$objective,message = res$message)
+}
+
 ##### use nloptr #### 
 gev.mle.new <- function(y0,x0,par0,maxeval=1000)
 {
@@ -135,7 +136,7 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
     nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(log(1-prob)) 
     
     elem <- apply(1- xi*(yita),1,function(x){max(0,x)})
-    coef.gr <- y0/(1-exp(-elem^(-1/x[3])))-1
+    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
     gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
     gr.xi <- -sum(coef.gr*(log(elem)/xi^2 + yita/(xi*elem))*elem^(-1/xi))
     gr.value <- c(gr.beta,gr.xi)

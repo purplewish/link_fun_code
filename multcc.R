@@ -20,7 +20,7 @@ sum((res.glm$fitted.values - prob0)^2)
 set.seed(4)
 xi <- 1
 ns <- 500
-beta0 <- c(0,1,-0.5)
+beta0 <- c(0.1,1,-1)
 x1 <- runif(ns,min = -8,max = 1)
 x2 <- runif(ns,min = 0,max =2)
 yita0 <- cbind(1,x1,x2)%*%beta0
