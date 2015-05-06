@@ -1,7 +1,7 @@
 ### 
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
-source('link_fun_code/splinelink.R')
+source('link_fun_code/psplinelink1.R')
 source('link_fun_code/gev.mle.R')
 library(evd)
 
@@ -269,28 +269,100 @@ gg
 dev.off()
 
 
-zz <- t(apply(out.gev1$aic[,-4],1,function(x){x - x[4]}))
+###### comparison of two covariates ####
+source('link_fun_code/link.compare.b.R')
+ns0 <- 100
+nrep0 <- 100
 
-zznew <- cbind(index= 1:100,zz[,-4])
-zznew <- as.data.frame(zznew)
+out.logit <- link.compare.b(model = 'logit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-zz.melt <- melt(data = zznew,id.vars = 'index',value.name = 'aic',variable.name='model')
-g1 <- ggplot(zz.melt,aes(x=index,y=aic,color=model))+geom_point()+theme_bw()+ggtitle('gev')+geom_hline(yintercept=0)
+out.probit<- link.compare.b(model = 'probit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-zz1 <- t(apply(out.logit$aic[,-4],1,function(x){x - x[1]}))
+out.robit1<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-zznew1 <- cbind(index= 1:100,zz1[,-1])
-zznew1 <- as.data.frame(zznew1)
+out.robit2<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
 
-zz.melt1 <- melt(data = zznew1,id.vars = 'index',value.name = 'aic',variable.name='model')
-g2 <- ggplot(zz.melt1,aes(x=index,y=aic,color=model))+geom_point()+theme_bw()+ggtitle('logit')+geom_hline(yintercept=0)
+out.robit3<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev1 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.4,model.args = list(beta0=c(0,1,1),xi=1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev2 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = 0,model.args = list(beta0=c(0,1,1),xi=0.5),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev3 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.5,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-0.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev4 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+
+#out.splogit.05<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0, model.args = list(beta0=c(0,1,1),r=0.5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.splogit.02<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,
+model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.3)
+
+#out.splogit.2<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,
+#model.args = list(beta0=c(0,1,1),r=2),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.5)
+
+out.splogit.5<- link.compare.b(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2)
+
+mse.out <-  cbind(out.logit$mse.mat,out.probit$mse.mat,out.robit3$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.gev3$mse.mat,out.gev4$mse.mat,out.splogit.02$mse.mat, out.splogit.5$mse.mat)
+col.name <-  c('logit','probit','robit','gev','splogit','gam','pspline')
+row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(.02)','splogit(5)')
+
+save(mse.out,file='output/outputall100.RData')
+source('link_fun_code/tab.fig.fun.R')
+res <- tab.fig.fun(mse.out,col.name = col.name,row.name = row.name,remove = FALSE)
+gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+pdf('figures/plot100b_rel.pdf',width = 10,height = 6)
+gg
+dev.off()
 
 
 
-g12 <- list()
-g12[[1]] <- g1
-g12[[2]] <- g2
 
-pdf('figures/gev_logit.pdf')
-print(g12)
+
+
+
+#####------------------------------ comparison of nonlinear------------------------------------- ####
+source('link_fun_code/link.compare.n.R')
+ns0 <- 100
+nrep0 <- 100
+
+out.logit <- link.compare.n(model = 'logit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
+
+out.probit<- link.compare.n(model = 'probit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.robit1<- link.compare.n(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.robit2<- link.compare.n(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
+
+out.robit3<- link.compare.n(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev1 <- link.compare.n(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.4,model.args = list(beta0=c(0,1,1),xi=1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev2 <- link.compare.n(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = 0,model.args = list(beta0=c(0,1,1),xi=0.5),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev3 <- link.compare.n(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.5,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-0.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev4 <- link.compare.n(model = 'gev',ns = ns0,s0 = 56,nrep = nrep0,min.value = -1,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10,beta0s=c(1,-1)))
+
+
+#out.splogit.05<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0, model.args = list(beta0=c(0,1,1),r=0.5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.splogit.02<- link.compare.n(model = 'splogit',ns = ns0,nrep = nrep0,
+                                model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.3)
+
+#out.splogit.2<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,
+#model.args = list(beta0=c(0,1,1),r=2),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.5)
+
+out.splogit.5<- link.compare.n(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2)
+
+mse.out <-  cbind(out.logit$mse.mat,out.robit3$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.gev3$mse.mat)
+col.name <-  c('logit','probit','robit','gev','splogit','gam','pspline')
+row.name <- c('logit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)')
+
+save(mse.out,file='output/outputall100n.RData')
+source('link_fun_code/tab.fig.fun.R')
+res <- tab.fig.fun(mse.out,col.name = col.name,row.name = row.name,remove = FALSE)
+gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+pdf('figures/plot100n_rel.pdf',width = 10,height = 6)
+gg
 dev.off()

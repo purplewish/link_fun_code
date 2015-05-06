@@ -29,7 +29,7 @@ y0 <- rbinom(ns,size = 1,prob = prob0)
 summary(prob0)
 table(y0)
 
-#### nolinear ####
+#### nonlinear ####
 set.seed(4)
 ns <- 500
 x1 <- runif(ns,min = -4,max = -1)

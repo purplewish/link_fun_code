@@ -1,4 +1,4 @@
-### link comparison based on two covariates, one is N(0,3), another one is binary####
+### link comparison based on two covariates, nonlinear model ####
 ## for GEV use uniform distribution####
 library(evd)
 library(nloptr)
@@ -16,10 +16,10 @@ source('link_fun_code/gev.mle.R')
 #including 'logit','probit','robit','gev','splogit'
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
-link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
-                        model.args=list(beta0=c(0,1,1)),
-                        init.args=list(init=c(0,0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
-                        spline.control = list(deg = 3,nknots = 10),lamv=seq(5,100,length.out = 20),bound=2.5)                                                                                                                                                                                                                                                                                                  
+link.compare.n<- function(model,s0=0,ns,nrep,min.value,max.value,muv = c(0,1),sdv =c(sqrt(3),sqrt(3)),
+                          model.args = list(),
+                          init.args=list(init=c(0,0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
+                          spline.control = list(deg = 3,nknots = 10,beta0s=c(1,1)),lamv=seq(5,100,length.out = 20),bound=2.5)                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
   mse.logit <- mse.probit <- mse.gev <- mse.robit <- mse.splogit <- mse.pspline <-  mse.gam <- rep(0,nrep)
@@ -28,22 +28,26 @@ link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
   #aic.logit <- aic.probit <- aic.gev <- aic.gev.new <- aic.robit <- aic.splogit <- aic.pspline  <- rep(0,nrep)
   
   #### gradient ####
-  nb <- length(model.args$beta0)
+  nb <- 3
   grv.n1 <- matrix(0,nrep,nb+1)
   splogit.rv.n1 <- matrix(0,nrep,nb)
   boundary.n1 <- rep(0,nrep)
   
   deg <- spline.control$deg
   nknots <- spline.control$nknots
-  
-  betav <- model.args$beta0
+  beta0s <- spline.control$beta0s
   
   for(s in 1:nrep)
   {
     set.seed(s+s0)
-    x1 <- rnorm(ns,0,sd = sdv)
-    x2 <- rbinom(ns,size=1,prob=0.5)
-    yita0 <- cbind(1,x1,x2)%*%betav
+    x1 <- runif(ns,min = -4,max = -1)
+    x2 <- runif(ns,min = 2 ,max = 4)
+    yita0 <- (x1+x2)^2+ x1
+#     x1 <- rnorm(4*ns,muv[1],sd = sdv[1])
+#     x2 <- rnorm(4*ns,muv[2], sd = sdv[2])
+#     x1 <- x1[abs(x1) <= bound][1:ns]
+#     x2 <- x2[abs(x2) <= bound][1:ns]
+#     yita0 <- -1.5+0.5*(x1+x2)^2+x1*x2
     
     if(model == 'logit')
     {
@@ -62,21 +66,19 @@ link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
     }
     if(model=='gev')
     {
-      set.seed(s+s0)
       xi <- model.args$xi
-      x1 <- runif(ns,min = min.value,max = max.value)
-      x2 <- rbinom(ns,size=1,prob=0.5)
-      yita0 <- cbind(1,x1,x2)%*%betav
+#     x1 <- runif(ns,min = min.value,max = max.value)
+#     x2 <- rbinom(ns,size=1,prob=0.5)
+#     yita0 <- cbind(1,x1,x2)%*%betav
       prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
     }
     
     if(model == 'splogit')
     {
-      set.seed(s+s0)
-      x1 <- rnorm(2*ns,0,sd = sdv)
-      x1 <- (x1[abs(x1) <= bound])[1:ns]
-      x2 <- rbinom(ns,size=1,prob=0.5)
-      yita0 <- cbind(1,x1,x2)%*%betav
+#       x1 <- rnorm(2*ns,0,sd = sdv)
+#       x1 <- (x1[abs(x1) <= bound])[1:ns]
+#       x2 <- rbinom(ns,size=1,prob=0.5)
+
       
       splogit.link <- function(yita0,r0)
       {
@@ -108,15 +110,15 @@ link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
     gev.fit<- gev.mle.new(y0 = y0,x0 = xmat0,par0 = c(init,init.args$xi0),maxeval = 50000)
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
-  
-    lam<- pspline.gcv(y0 = y0,xmat = xmat0,qv=1,monotone = TRUE,nknots = nknots,beta0 = c(1,1))
     
-    pspline.fit <- psplinelink1(y0 = y0,xmat = xmat0,qv=1,monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam)
+    lam<- pspline.gcv(y0 = y0,xmat = xmat0,qv=1,monotone = TRUE,nknots = 10,beta0 = c(1,1),lamv = lamv,d.value = 9,MaxIter = 1000)
+    
+    pspline.fit <- psplinelink1(y0 = y0,xmat = xmat0,qv=1,monotone = TRUE,nknots = 10,beta0 = beta0s,lambda=lam,d.value = 9,MaxIter = 1000)
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     
     boundary.n1[s] <-  min(1-gev.fit$est[4]*cbind(1,xmat0)%*%gev.fit$est[1:3])
-  
+    
     mse.logit[s] <- mean((logit.fit$fitted.values - prob0)^2)
     mse.probit[s] <- mean((probit.fit$fitted.values - prob0)^2)
     mse.robit[s] <- mean((robit.fit$fitted.values - prob0)^2)
@@ -124,9 +126,9 @@ link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
     mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
     mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
     mse.gam[s] <- mean((gam.fit$fitted.values - prob0)^2)
-     
+    
     grv.n1[s,] <- gev.fit$gr
-
+    
     splogit.rv.n1[s,] <- splogit.fit$gr
     
     print(s)
@@ -139,6 +141,5 @@ link.compare.b<- function(model,s0=0,ns,nrep,min.value,max.value,sdv =sqrt(3),
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1)
   return(outls)
 }
-
 
 
