@@ -130,4 +130,13 @@ robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3)
   
 }
 
-print(c('robit.em','robit.ecmc','robit.pxem'))
+
+predict.pxem <- function(est.obj,newdata)
+{
+  beta.est <- est.obj$beta
+  nu.value <- est.obj$nu
+  eta.est <- cbind(1,newdata)%*%beta.est
+  prob.est <- pt(q = eta.est,df=nu.value)
+  return(prob.est)
+}
+print(c('robit.em','robit.ecmc','robit.pxem','predict.pxem'))

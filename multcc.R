@@ -14,6 +14,9 @@ abline(0,1)
 
 sum((res.glm$fitted.values - prob0)^2)
 
+xmatg <- expand.grid(seq(min(x1),max(x1),length.out = 100),seq(min(x2),max(x2),length.out = 100))
+colnames(xmatg) <- c('x1','x2')
+
 
 #### gev link ####
 library(evd)
@@ -61,16 +64,21 @@ source('link_fun_code/psplinelink1.R')
 source('link_fun_code/robit.em.R')
 library(mgcv)
 res.gev <- gev.mle.new(x0 = cbind(x1,x2),y0 = y0,par0 = c(0,0.1,-1,0.5),maxeval = 50000)
+predict.gev.new(est.obj = res.gev,newdata = cbind(x1,x2))
 
 res.splogit <- splogit.mle(y0 = y0,x0 = cbind(x1,x2),par0 = c(0,0,0),intervalr = c(0.03,10))
+
 
 res.gcv <- pspline.gcv(y0 = y0,xmat = cbind(x1,x2),qv=1,monotone = TRUE,nknots = 10,beta0 = c(1,1),lam.interval = c(10,200))
 
 res.sp <- psplinelink1(y0 = y0,xmat = cbind(x1,x2),qv=1,monotone = TRUE,nknots = 10,beta0 = c(1,-1),lambda=11)
+
 res.add <- gam(y0~s(x1)+x2,family = binomial(),data = as.data.frame(cbind(y0,x1,x2)))
 res.glm <- glm(y0~x1+x2,family = 'binomial')
 
-res.robit <- robit.pxem(y0 = y0,x0 = cbind(x1,x2),beta0 = beta0,nu0 = 2,tol = 1e-3) 
+res.robit <- robit.pxem(y0 = y0,x0 = cbind(x1,x2),beta0 = beta0,nu0 = 2,tol = 1e-3)
+
+predict.pxem(est.obj = res.robit,newdata=cbind(x1,x2)) == res.robit$fitted.values
 
 
 plot(prob0,res.gev$fitted.values)

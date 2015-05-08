@@ -134,3 +134,25 @@ splogit.mle <- function(y0,x0,par0,intervalr)
 
 
 
+predict.splogit <- function(est.obj,newdata)
+{
+  beta.est <- est.obj$beta
+  r <- est.obj$r
+
+  yita0 <- as.numeric(cbind(1,newdata)%*%beta.est)
+  if(r >0 & r <=1)
+  {
+    prob0 <- exp(yita0)/((1+exp(yita0/r))^r)
+  }
+  
+  if(r > 1)
+  {
+    yita.new <- -r*yita0
+    prob0 <- 1-(exp(yita.new)/(1+exp(yita.new)))^(1/r)
+  }
+
+ return(prob0)
+
+}
+
+print(c('splogit.mle','predict.splogit'))

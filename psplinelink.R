@@ -65,7 +65,8 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,
     }
   
   value <- -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))
-  out <- list(fitted.values = bs.mu, eta = bs.eta,trace = traceH,value=value)
+  out <- list(fitted.values = bs.mu, eta = bs.eta,trace = traceH,value=value,
+              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots)
   return(out)
 }
 
@@ -78,9 +79,8 @@ AIC.value <- function(est.obj,y0)
 }
 
 
-
 ####combine together ####
-pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,toll = 1e-4,boundary)
+pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary,lamv=seq(5,100,length.out = 20))
 {
   bs.nc <- nknots+deg-1
   lam.fun<- function(lambda)
@@ -137,9 +137,9 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
-        diff.value <- sqrt(mean((delta.update-delta.old)^2))
+        diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
-        if(diff.value <= toll){break} 
+        if(diff.value <= tol){break} 
       }  
       
       Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
@@ -153,9 +153,30 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
     return(aic.value)
   }
   
-  out.aic <- optimize(f = lam.fun,interval = lam.interval)
-  lam.value <- out.aic$minimum
+  gcvv <- unlist(lapply(lamv,lam.fun))
+
+  lam.value <- lamv[which.min(gcvv)]
+  
   return(lam.value)
 }
 
-print(c('psplinelink','AIC.value','pspline.aic'))
+
+predict.pspline <- function(est.obj,newdata)
+{
+  
+  deg <- est.obj$deg
+  knots <- est.obj$knots
+  delta.est <- est.obj$delta.est
+  boundary <- est.obj$boundary
+  bs.value <- bs(newdata,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = boundary,intercept=TRUE)
+
+  eta.bs <- bs.value%*%delta.est
+  prob.est <- exp(eta.bs)/(1+exp(eta.bs))
+  return(prob.est)
+  
+}
+
+print(c('psplinelink','AIC.value','pspline.aic','predict.pspline'))
+
+
+

@@ -4,9 +4,15 @@ library(actuar)
 library(splines)
 library(MASS)
 ## qv is value of quantile value of qv ####
-psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,monotone=TRUE,beta0,delta0,tol = 1e-8,lambda=20,MaxIter=1000)
+# cat is the name of categorical data ###
+psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
+                        monotone=TRUE,beta0,delta0,catv=NULL,
+                        tol = 1e-8,lambda=20,MaxIter=1000)
 {
   xmats <- scale(xmat) 
+  xmats[,catv] <- xmat[,catv]
+  center <- attr(xmats,'scaled:center')
+  sd.value <- attr(xmats,'scaled:scale')
   atu <- quantile(sqrt(rowSums(xmats^2)),qv)
  
   bs.nc <- nknots+deg-1
@@ -108,17 +114,25 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,monoto
 
   
   eta <- xmats%*%beta.update
-  fitted.values <- muhat
-  res <- list(eta= eta,est = beta.update,fitted.values = fitted.values)
+  q.value <- (eta/atu+1)/2
+  Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
+  bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
+  fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
+  res <- list(eta= eta,est = beta.update,delta=delta.update,fitted.values = fitted.values,
+              qv=qv,deg=deg,kp=kp,nknots=nknots,knots=knots,d.value=d.value,atu=atu,
+              center=center,sd.value = sd.value,catv=catv)
+  
   return(res)
 }
 
 #### pspline using GCV ###
-pspline.gcv <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=seq(5,100,length.out = 20),MaxIter = 100)
+pspline.gcv <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,catv=NULL,
+                        monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=seq(5,100,length.out = 20),MaxIter = 100)
 {  
-  bs.nc <- nknots+deg-1
-  xmats <- scale(xmat)
+  xmats <- scale(xmat) 
+  xmats[,catv] <- xmat[,catv]
   atu <- quantile(sqrt(rowSums(xmats^2)),qv)
+  bs.nc <- nknots+deg-1
   delta0 <- rep(0,bs.nc)
   knots <- seq(0,1,length.out = nknots)
   
@@ -238,7 +252,39 @@ pspline.gcv <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,monotone
   return(lam.value)
 }
 
-print(c('psplinelink1','pspline.gcv'))
 
 
 
+##### predict based on pspline link function ######
+
+predict.pspline1 <- function(est.obj,newdata)
+{
+  
+  deg <- est.obj$deg
+  nknots <- est.obj$nknots
+  knots <- est.obj$knots
+  d.value <- est.obj$d.value
+  qv <- est.obj$qv 
+  est <- est.obj$est
+  atu <- est.obj$atu
+  delta.est <- est.obj$delta
+  catv<- est.obj$catv
+  center <- est.obj$center
+  sd.value <- est.obj$sd.value
+  
+  newdatas <- t((t(newdata) - center)/sd.value)
+  newdatas[,catv] <- newdata[,catv]
+  
+  eta.new <- newdatas%*%est
+  q.value <- (eta.new/atu+1)/2
+  Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
+  
+  bs.value <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
+  
+  eta.bs <- bs.value%*%delta.est
+  prob.est <- exp(eta.bs)/(1+exp(eta.bs))
+  return(prob.est)
+  
+}
+
+print(c('psplinelink1','pspline.gcv','predict.pspline1'))

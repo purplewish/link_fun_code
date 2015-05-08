@@ -7,7 +7,7 @@ library(ggplot2)
 
 tab.fig.fun <- function(mse.out,remove =TRUE,col.name, row.name)
 { 
-  mse.mat <- sqrt(matrix(colMeans(mse.out),ncol=length(col.name),byrow=TRUE))
+  mse.mat <- matrix(colMeans(mse.out),ncol=length(col.name),byrow=TRUE)
   colnames(mse.mat) <- col.name
   rownames(mse.mat) <- row.name
   

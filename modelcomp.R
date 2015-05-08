@@ -274,47 +274,64 @@ source('link_fun_code/link.compare.b.R')
 ns0 <- 100
 nrep0 <- 100
 
-out.logit <- link.compare.b(model = 'logit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.logit <- link.compare.b(model = 'logit',ns = ns0,nrep = nrep0,
+                            muv = -1.5,model.args = list(beta0=c(0,1,1)),
+                            init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.probit<- link.compare.b(model = 'probit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.probit<- link.compare.b(model = 'probit',ns = ns0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit1<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit1<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit2<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
+out.robit2<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -1.5,
+                            model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
 
-out.robit3<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit3<- link.compare.b(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev1 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.4,model.args = list(beta0=c(0,1,1),xi=1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev1 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5,
+                           model.args = list(beta0=c(0,1,1),xi=1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev2 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -10,max.value = 0,model.args = list(beta0=c(0,1,1),xi=0.5),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev2 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5,
+                           model.args = list(beta0=c(0,1,1),xi=0.5),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev3 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.5,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-0.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev3 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5
+                           ,model.args = list(beta0=c(0,1,1),xi=-0.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev4 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1,max.value = 1.5,model.args = list(beta0=c(0,1,1),xi=-1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev4 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5
+                           ,model.args = list(beta0=c(0,1,1),xi=-1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
 
-#out.splogit.05<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0, model.args = list(beta0=c(0,1,1),r=0.5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.splogit.02<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,muv=-1.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.splogit.02<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,
-model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.3)
 
-#out.splogit.2<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,
-#model.args = list(beta0=c(0,1,1),r=2),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.5)
+out.splogit.5<- link.compare.b(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-1.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2.5)
 
-out.splogit.5<- link.compare.b(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2)
+rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.02$rmse.mat, out.splogit.5$rmse.mat)
 
-mse.out <-  cbind(out.logit$mse.mat,out.probit$mse.mat,out.robit3$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.gev3$mse.mat,out.gev4$mse.mat,out.splogit.02$mse.mat, out.splogit.5$mse.mat)
+# rrmse.out <-  cbind(out.logit$rrmse.mat,out.probit$rrmse.mat,out.robit3$rrmse.mat,out.robit1$rrmse.mat,out.robit2$rrmse.mat, out.gev1$rrmse.mat,out.gev2$rrmse.mat,out.gev3$rrmse.mat,out.gev4$rrmse.mat,out.splogit.02$rrmse.mat, out.splogit.5$rrmse.mat)
+
+
+prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.02$prmse.mat, out.splogit.5$prmse.mat)
+
+# prrmse.out <-  cbind(out.logit$prrmse.mat,out.probit$prrmse.mat,out.robit3$prrmse.mat,out.robit1$prrmse.mat,out.robit2$prrmse.mat, out.gev1$prrmse.mat,out.gev2$prrmse.mat,out.gev3$prrmse.mat,out.gev4$prrmse.mat,out.splogit.02$prrmse.mat, out.splogit.5$prrmse.mat)
+
 col.name <-  c('logit','probit','robit','gev','splogit','gam','pspline')
 row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(.02)','splogit(5)')
 
-save(mse.out,file='output/outputall100.RData')
+save(rmse.out,prmse.out,file='output/outputall200new.RData')
 source('link_fun_code/tab.fig.fun.R')
-res <- tab.fig.fun(mse.out,col.name = col.name,row.name = row.name,remove = FALSE)
-gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
-pdf('figures/plot100b_rel.pdf',width = 10,height = 6)
-gg
+res <- tab.fig.fun(rmse.out,col.name = col.name,row.name = row.name,remove = FALSE)
+resp <- tab.fig.fun(prmse.out,col.name=col.name,row.name=row.name,remove=FALSE)
+gg1 <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+gg2 <- resp$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+
+pdf('figures/plot200b_rel.pdf',width = 12,height = 5)
+grid.arrange(gg1,gg2,ncol=2)
 dev.off()
 
+pdf('figures/box_gev_100.pdf',height = 6,width = 10)
+boxplot(out.gev1$prmse.mat)
+dev.off()
+boxplot(out.gev1$rmse.mat)
 
 
 
@@ -365,4 +382,54 @@ res <- tab.fig.fun(mse.out,col.name = col.name,row.name = row.name,remove = FALS
 gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
 pdf('figures/plot100n_rel.pdf',width = 10,height = 6)
 gg
+dev.off()
+
+
+
+
+#### ------------nonlinear of x1--------#######
+source('link_fun_code/link.compare.n1.R')
+ns0 <- 200
+nrep0 <- 100
+
+out.logit <- link.compare.n1(model = 'logit',ns = ns0,s0=0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv = seq(0.1,20,length.out = 20))
+
+out.probit<- link.compare.n1(model = 'probit',ns = ns0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(0.1,20,length.out = 20))
+
+out.robit1<- link.compare.n1(model = 'robit',ns = ns0,nrep = nrep0,muv =-0.5,model.args = list(nu=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(0.1,20,length.out = 20))
+
+out.robit2<- link.compare.n1(model = 'robit',ns = ns0,nrep = nrep0,muv =-0.5,model.args = list(nu=2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv = seq(0.1,20,length.out = 20))
+
+out.robit3<- link.compare.n1(model = 'robit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(nu=0.6),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(0.1,20,length.out = 20))
+
+ out.gev1 <- link.compare.n1(model = 'gev',ns = ns0,s0=0,nrep = nrep0,muv=-0.5,model.args = list(xi=1),init.args = list(init = c(0,0),xi0=0.6,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(0.1,20,length.out = 20))
+
+out.gev2 <- link.compare.n1(model = 'gev',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(xi=0.5),init.args = list(init = c(0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+out.gev3 <- link.compare.n1(model = 'gev',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(xi=-0.5),init.args = list(init = c(0,0.1),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(0.1,20,length.out = 20))
+
+out.gev4 <- link.compare.n1(model = 'gev',ns = ns0,s0 = 0,muv=-0.5,nrep = nrep0,model.args = list(xi=-1),init.args = list(init = c(0,0.1),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10))
+
+out.splogit.02<- link.compare.n1(model = 'splogit',ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=0.2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(0.1,20,length.out = 20))
+
+
+out.splogit.3<- link.compare.n1(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=3),init.args = list(init = c(0,0.2),xi0=-0.1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.5,lamv = seq(1,20,length.out = 20))
+
+rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.02$rmse.mat,out.splogit.3$rmse.mat)
+
+prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.02$prmse.mat,out.splogit.3$prmse.mat)
+
+
+col.name <-  c('logit','probit','robit','gev','splogit','pspline')
+row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(.02)','splogit(3)')
+
+save(rmse.out,prmse.out,file='output/outputall200n_new.RData')
+source('link_fun_code/tab.fig.fun.R')
+res <- tab.fig.fun(rmse.out,col.name = col.name,row.name = row.name,remove = FALSE)
+resp <- tab.fig.fun(prmse.out,col.name=col.name,row.name=row.name,remove=FALSE)
+gg1 <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+gg2 <- resp$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
+
+pdf('figures/plot100n_rel_new.pdf',width = 12,height = 6)
+grid.arrange(gg1,gg2,ncol=2)
 dev.off()
