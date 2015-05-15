@@ -19,7 +19,7 @@ source('link_fun_code/gev.mle.R')
 link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
                         model.args=list(beta0=c(0,1,1)),
                         init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)),
-                        spline.control = list(deg = 3,nknots = 10),lamv=seq(5,100,length.out = 20),MaxIter=1000)                                                                                                                                                                                                                                                                                                  
+                        spline.control = list(deg = 3,nknots = 10),lamv=seq(1,20,length.out = 10),iter=50)                                                                                                                                                                                                                                                                                                  
 {
   
   ### output ####
@@ -32,7 +32,7 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
   #### aic ##### 
   #aic.logit <- aic.probit <- aic.gev <- aic.gev.new <- aic.robit <- aic.splogit <- aic.pspline  <- rep(0,nrep)
   
-  
+
   betav <- model.args$beta0
   nb <- length(betav)
   ## gradient ###
@@ -82,7 +82,8 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     if(model=='gev')
     {
       xi <- model.args$xi
-      prob0 <- 1-pgev(-eta0,loc = 0,scale = 1,shape = xi)
+      locv <- model.args$loc
+      prob0 <- 1-pgev(-eta0,loc = locv,scale = 1,shape = xi)
       prob.new <- 1-pgev(-eta.new,loc = 0,scale = 1,shape = xi)
     }
     
@@ -121,9 +122,9 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
   
-    lam<- pspline.gcv(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = MaxIter)
+    lam<- pspline.gcv(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = 500,lamv = lamv)
     
-    pspline.fit <- psplinelink1(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = MaxIter)
+    pspline.fit <- psplinelink1(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=20,MaxIter = iter)
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     

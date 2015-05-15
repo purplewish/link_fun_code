@@ -275,35 +275,35 @@ ns0 <- 100
 nrep0 <- 100
 
 out.logit <- link.compare.b(model = 'logit',ns = ns0,nrep = nrep0,
-                            muv = -1.5,model.args = list(beta0=c(0,1,1)),
+                            muv = -0.5,model.args = list(beta0=c(0,1,1)),
                             init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.probit<- link.compare.b(model = 'probit',ns = ns0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.probit<- link.compare.b(model = 'probit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit1<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit1<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.robit2<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -1.5,
+out.robit2<- link.compare.b(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,
                             model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2)
 
-out.robit3<- link.compare.b(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -1.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.robit3<- link.compare.b(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev1 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5,
-                           model.args = list(beta0=c(0,1,1),xi=1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev1 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = 0,s0=0,
+                           model.args = list(beta0=c(0,1,2),xi=1,locv=-1),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2)
 
-out.gev2 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5,
-                           model.args = list(beta0=c(0,1,1),xi=0.5),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev2 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=42,
+                           model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1.8),init.args = list(init = c(0,0.1,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev3 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5
-                           ,model.args = list(beta0=c(0,1,1),xi=-0.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev3 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5
+                           ,model.args = list(beta0=c(0,1,1),xi=-0.5,locv=1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
-out.gev4 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -1.5
-                           ,model.args = list(beta0=c(0,1,1),xi=-1),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-
-out.splogit.02<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,muv=-1.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+out.gev4 <- link.compare.b(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5
+                           ,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.5),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
 
 
-out.splogit.5<- link.compare.b(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-1.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2.5)
+out.splogit.02<- link.compare.b(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)))
+
+
+out.splogit.5<- link.compare.b(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 2.5)
 
 rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.02$rmse.mat, out.splogit.5$rmse.mat)
 
@@ -413,7 +413,7 @@ out.gev4 <- link.compare.n1(model = 'gev',ns = ns0,s0 = 0,muv=-0.5,nrep = nrep0,
 out.splogit.02<- link.compare.n1(model = 'splogit',ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=0.2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(0.1,20,length.out = 20))
 
 
-out.splogit.3<- link.compare.n1(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=3),init.args = list(init = c(0,0.2),xi0=-0.1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=2.5,lamv = seq(1,20,length.out = 20))
+out.splogit.3<- link.compare.n1(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=3),init.args = list(init = c(0,0.2),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(1,20,length.out = 20))
 
 rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.02$rmse.mat,out.splogit.3$rmse.mat)
 

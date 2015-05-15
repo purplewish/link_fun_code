@@ -5,11 +5,12 @@ library(splines)
 library(MASS)
 ## qv is value of quantile value of qv ####
 # cat is the name of categorical data ###
-psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
+psplinelink1<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=5,
                         monotone=TRUE,beta0,delta0,catv=NULL,
                         tol = 1e-8,lambda=20,MaxIter=1000)
 {
   xmats <- scale(xmat) 
+  d.value <- ncol(xmat)
   xmats[,catv] <- xmat[,catv]
   center <- attr(xmats,'scaled:center')
   sd.value <- attr(xmats,'scaled:scale')
@@ -45,6 +46,7 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
         delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,])%*%t(bs0[index,])%*%wt%*%z
+
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break}
@@ -70,7 +72,11 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
-        delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+        cz <- chol(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
+        delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
+#         delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+        
+        
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break}
@@ -79,11 +85,9 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
       
     }
     
-    ### update beta ####
-    
+    ### update beta ####                                                                                                                                                                                                                                                                                                                                                                                                                                          
     for(j2 in 1:MaxIter)
     {
-      
       eta.old<- xmats%*%beta.old
       eta.stand <- eta.old
       q.old <- (eta.stand/atu+1)/2
@@ -97,9 +101,11 @@ psplinelink1<- function(y0,xmat,qv=1,deg = 3,d.value =5,kp = 1e6,nknots=5,
       du.eta <- muhat*(1-muhat)* fun.deriv*den.value
       z.beta <- eta.stand +(y0 - muhat)/du.eta
       wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2))
-      beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+     # beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+      cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
+      beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
       beta.update <- beta.update/sqrt(sum(beta.update^2))
-      diff.value <- mean((beta.update-beta.old)^2)
+      diff.value <- sqrt(sum((beta.update-beta.old)^2))
       beta.old <- beta.update
       if(diff.value <= tol){break} 
       if(j2 == MaxIter){print('MaxIter reached without convergence')}
@@ -221,9 +227,14 @@ pspline.gcv <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,catv=NUL
             du.eta <- muhat*(1-muhat)* fun.deriv*den.value
             z.beta <- eta.stand +(y0 - muhat)/du.eta
             wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2))
-            beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+#             beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+            
+            cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
+            beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
             beta.update <- beta.update/sqrt(sum(beta.update^2))
-            diff.value <- mean((beta.update-beta.old)^2)
+            
+            beta.update <- beta.update/sqrt(sum(beta.update^2))
+            diff.value <- sqrt(sum((beta.update-beta.old)^2))
             beta.old <- beta.update
             if(diff.value <= tol){break} 
             if(j2 == MaxIter){print('MaxIter reached without convergence')}

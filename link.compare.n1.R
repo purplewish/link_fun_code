@@ -109,7 +109,7 @@ link.compare.n1<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list()
     deg <- 3
     bs.nc <- nknots+deg-1
     delta0 <- rep(1/bs.nc,bs.nc)
-    lam<- pspline.aic(y0 = y0,x0 = x1,deg = 3,lam.interval = c(0,100), monotone = TRUE,delta0=delta0,nknots = 10,boundary = range(x1),lamv = lamv)
+    lam<- pspline.aic(y0 = y0,x0 = x1,deg = 3, monotone = TRUE,delta0=delta0,nknots = 10,boundary = range(x1),lamv = lamv)
     
     pspline.fit <- psplinelink(y0 = y0,x0 = x1,deg = 3,lambda = lam, monotone = TRUE,delta0=delta0,nknots = 10,boundary = range(x1))
     
