@@ -1,6 +1,6 @@
 #### identification solved, no intercept, beta1 =1 #####
 library(splines)
-psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary)
+psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0,tol = 1e-4,boundary,MaxIter)
 {
   bs.nc <- nknots+deg-1
   beta.old <- 1
@@ -20,20 +20,20 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,
       Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
-      repeat
-      {
+    for(j in 1:MaxIter)
+    {
+
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%z
-        diff.value <- mean((delta.update-delta.old)^2)
+        diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break}
-      }  
-      
-      Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
-      traceH <- sum(diag(Hmat))
+        if(j == MaxIter){print('MaxIter reached without convergence')}      
+    }
+
     }
     
     if(monotone==TRUE)
@@ -47,7 +47,7 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,
       Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
-      repeat
+      for(j in 1:MaxIter)
       {
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
@@ -58,29 +58,28 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=TRUE,delta0,
         diff.value <- sqrt(mean((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break} 
-      }  
-      
-      Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
-      traceH <- sum(diag(Hmat))
+        if(j == MaxIter){print('MaxIter reached without convergence')}
+      }   
+
     }
   
   value <- -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))
-  out <- list(fitted.values = bs.mu, eta = bs.eta,trace = traceH,value=value,
+  out <- list(fitted.values = bs.mu, eta = bs.eta,value=value,
               delta.est= delta.update,deg=deg,boundary=boundary,knots=knots)
   return(out)
 }
 
-AIC.value <- function(est.obj,y0)
-{
-  fitted.value <- est.obj$fitted.value
-  traceH <- est.obj$trace
-  aic.value <- -2*sum(y0*log(fitted.value/(1-fitted.value))+log(1-fitted.value))+2*traceH
-  return(aic.value)
-}
+# AIC.value <- function(est.obj,y0)
+# {
+#   fitted.value <- est.obj$fitted.value
+#   traceH <- est.obj$trace
+#   aic.value <- -2*sum(y0*log(fitted.value/(1-fitted.value))+log(1-fitted.value))+2*traceH
+#   return(aic.value)
+# }
 
 
 ####combine together ####
-pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary,lamv=seq(5,100,length.out = 20))
+pspline.gcv <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary,lamv=seq(5,20,length.out = 10),MaxIter=1000)
 {
   bs.nc <- nknots+deg-1
   lam.fun<- function(lambda)
@@ -95,6 +94,7 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
     knots <- seq(eta.range[1],eta.range[2],length.out = nknots)
     bs0 <- bs(eta.old,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = boundary,intercept=TRUE)
     
+
     if(monotone==FALSE)
     {
       Dmat1 <- matrix(0,ncol = bs.nc, nrow = bs.nc -2)
@@ -102,20 +102,23 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
       Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
-      repeat
+      for(j in 1:MaxIter)
       {
+        
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%z
-        diff.value <- mean((delta.update-delta.old)^2)
+        diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break}
-      }  
+        if(j == MaxIter){print('MaxIter reached without convergence')}      
+      }
       
       Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
       traceH <- sum(diag(Hmat))
+      
     }
     
     if(monotone==TRUE)
@@ -129,7 +132,7 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
       Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
-      repeat
+      for(j in 1:MaxIter)
       {
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
@@ -137,20 +140,19 @@ pspline.aic <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
-        diff.value <- sqrt(sum((delta.update-delta.old)^2))
+        diff.value <- sqrt(mean((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break} 
-      }  
+        if(j == MaxIter){print('MaxIter reached without convergence')}
+      }   
       
       Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
       traceH <- sum(diag(Hmat))
     }
-    
-    out <- list(fitted.values = bs.mu, trace = traceH)
-    fitted.value <- out$fitted.values
-    traceH <- out$trace
-    aic.value <- -2*sum(y0*log(fitted.value/(1-fitted.value))+log(1-fitted.value))+2*traceH
-    return(aic.value)
+ 
+    gcv <- mean((y0 - bs.mu)^2)/(1-traceH/length(y0))^2
+
+    return(gcv)
   }
   
   gcvv <- unlist(lapply(lamv,lam.fun))
@@ -176,7 +178,7 @@ predict.pspline <- function(est.obj,newdata)
   
 }
 
-print(c('psplinelink','AIC.value','pspline.aic','predict.pspline'))
+print(c('psplinelink','pspline.gcv','predict.pspline'))
 
 
 

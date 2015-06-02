@@ -1,5 +1,4 @@
 #### algorithm #### 
-#### spline not pspline, 5 knots ###
 library(actuar)
 library(splines)
 library(MASS)
@@ -14,7 +13,7 @@ psplinelink2<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=5,
   xmats[,catv] <- xmat[,catv]
   center <- attr(xmats,'scaled:center')
   sd.value <- attr(xmats,'scaled:scale')
-  atu <- quantile(sqrt(rowSums(xmats^2)),qv)
+  atu <- quantile(sqrt(rowSums(xmats^2)),0.95)
   
   bs.nc <- nknots+deg-1
   delta0 <- rep(0,bs.nc)
@@ -72,13 +71,14 @@ psplinelink2<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=5,
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
-        cz <- chol(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
-        delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
-        #         delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+#         cz <- chol(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
+#         delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
+     delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         
         
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
+print(delta.update)
         if(diff.value <= tol){break}
         if(j1 == MaxIter){print('MaxIter reached without convergence')}
       }
@@ -157,9 +157,7 @@ psplinelink2<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=5,
  
     diff.total<- sqrt(sum((beta.update - beta.comp)^2) + sum((delta.update - delta.comp)^2))
     if(diff.total<= tol){break} 
-    if(j == MaxIter){print('MaxIter reached without convergence')}
-print(diff.total)
-    
+    if(j == MaxIter){print('MaxIter reached without convergence')}    
   }
   
   
@@ -176,11 +174,12 @@ print(diff.total)
 }
 
 #### pspline using GCV ###
-pspline.gcv2 <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,catv=NULL,
+pspline.gcv2 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
                         monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=seq(5,100,length.out = 20),MaxIter = 100)
 {  
   xmats <- scale(xmat) 
   xmats[,catv] <- xmat[,catv]
+  d.value <- ncol(xmat)
   atu <- quantile(sqrt(rowSums(xmats^2)),qv)
   bs.nc <- nknots+deg-1
   delta0 <- rep(0,bs.nc)
@@ -220,7 +219,7 @@ pspline.gcv2 <- function(y0,xmat,qv=1,deg = 3,d.value =5,nknots=5,kp=1e6,catv=NU
         }  
         
         Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
-        traceH <- sum(diag(Hmat))
+         traceH<- sum(diag(Hmat))
       }
       
       if(monotone)

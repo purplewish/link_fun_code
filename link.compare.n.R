@@ -16,10 +16,8 @@ source('link_fun_code/gev.mle.R')
 #including 'logit','probit','robit','gev','splogit'
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
-link.compare.n<- function(model,s0=0,ns,nrep,min.value,max.value,muv = c(0,1),sdv =c(sqrt(3),sqrt(3)),
-                          model.args = list(),
-                          init.args=list(init=c(0,0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
-                          spline.control = list(deg = 3,nknots = 10,beta0s=c(1,1)),lamv=seq(5,100,length.out = 20),bound=2.5)                                                                                                                                                                                                                                                                                                  
+link.compare.n<- function(model,s0=0,ns,nrep,min.value,max.value,muv = c(0,1),sdv =c(sqrt(3),sqrt(3)),  model.args = list(),init.args=list(init=c(0,0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),
+spline.control = list(deg = 3,nknots = 10,beta0s=c(1,1)),lamv=seq(5,100,length.out = 20),bound=2.5)                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
   mse.logit <- mse.probit <- mse.gev <- mse.robit <- mse.splogit <- mse.pspline <-  mse.gam <- rep(0,nrep)

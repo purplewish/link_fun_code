@@ -5,7 +5,7 @@ library(nloptr)
 library(mgcv)
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
-source('link_fun_code/psplinelink1.R')
+source('link_fun_code/psplinelink3.R')
 source('link_fun_code/gev.mle.R')
 # ns: sample size, nrep: number of replication; beta0: true parameters;
 # min.value, max.value: range of independent variables 
@@ -16,7 +16,7 @@ source('link_fun_code/gev.mle.R')
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
 ## bound*sd 
-link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,20,length.out = 10),iter=500)                                                                                                                                                                                                                                                                                                  
+link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,20,length.out = 10),iter=1000)                                                                                                                                                                                                                                                                                                  
 {
   
   ### output ####
@@ -29,11 +29,11 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
   #### aic ##### 
   #aic.logit <- aic.probit <- aic.gev <- aic.gev.new <- aic.robit <- aic.splogit <- aic.pspline  <- rep(0,nrep)
   
-
+  
   betav <- model.args$beta0
   nb <- length(betav)
   ## gradient ###
- 
+  
   grv.n1 <- matrix(0,nrep,nb+1)
   splogit.rv.n1 <- matrix(0,nrep,nb)
   boundary.n1 <- rep(0,nrep)
@@ -109,7 +109,7 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
     }
     
     y0 <- rbinom(ns,size = 1,prob = prob0)
-
+    
     
     dd <- spline.control$dd
     init <- init.args$init
@@ -119,15 +119,15 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
     gev.fit<- gev.mle.new(y0 = y0,x0 = xmat0,par0 = c(init,init.args$xi0),maxeval = 50000)
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
-  
-    lam<- pspline.gcv(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv,dd=dd)
     
-    pspline.fit <- psplinelink1(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter,dd=dd)
+    lam<- pspline.gcv3(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv,dd=dd)
+    
+    pspline.fit <- psplinelink3(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter,dd=dd)
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     
     boundary.n1[j] <-  min(1-gev.fit$est[4]*cbind(1,xmat0)%*%gev.fit$est[1:3])
-  
+    
     rmse.logit[j] <- sqrt(mean((logit.fit$fitted.values - prob0)^2))
     rmse.probit[j] <- sqrt(mean((probit.fit$fitted.values - prob0)^2))
     rmse.robit[j] <- sqrt(mean((robit.fit$fitted.values - prob0)^2))
@@ -144,9 +144,9 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
     rrmse.pspline[j] <- sqrt(mean((pspline.fit$fitted.values - prob0)^2/prob0^2))
     rrmse.gam[j] <- sqrt(mean((gam.fit$fitted.values - prob0)^2/prob0^2))
     
-     
+    
     grv.n1[j,] <- gev.fit$gr
-
+    
     splogit.rv.n1[j,] <- splogit.fit$gr
     
     
@@ -157,7 +157,7 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
     robit.pred <- predict.pxem(est.obj = robit.fit,newdata = newdata)
     gev.pred <- predict.gev.new(est.obj = gev.fit,newdata = newdata)
     splogit.pred <- predict.splogit(est.obj = splogit.fit,newdata = newdata)
-    pspline.pred <- predict.pspline1(est.obj = pspline.fit,newdata = newdata)
+    pspline.pred <- predict.pspline3(est.obj = pspline.fit,newdata = newdata)
     gam.pred <- predict(gam.fit,newdata = as.data.frame(newdata),type = 'response')
     
     prmse.logit[j] <- sqrt(mean((logit.pred- prob.new)^2))
@@ -181,22 +181,21 @@ link.compare.b<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,m
   }
   
   rmse.mat <- cbind(rmse.logit,rmse.probit,rmse.robit,
-                   rmse.gev,rmse.splogit,rmse.gam,rmse.pspline)
+                    rmse.gev,rmse.splogit,rmse.gam,rmse.pspline)
   
   rrmse.mat <- cbind(rrmse.logit,rrmse.probit,rrmse.robit,
-                    rrmse.gev,rrmse.splogit,rrmse.gam,rrmse.pspline)
+                     rrmse.gev,rrmse.splogit,rrmse.gam,rrmse.pspline)
   
   prmse.mat <- cbind(prmse.logit,prmse.probit,prmse.robit,
-                    prmse.gev,prmse.splogit,prmse.gam,prmse.pspline)
+                     prmse.gev,prmse.splogit,prmse.gam,prmse.pspline)
   
   prrmse.mat <- cbind(prrmse.logit,prrmse.probit,prrmse.robit,
-                     prrmse.gev,prrmse.splogit,prrmse.gam,prrmse.pspline)
+                      prrmse.gev,prrmse.splogit,prrmse.gam,prrmse.pspline)
   
   outls <- list(rmse.mat = rmse.mat, rrmse.mat = rrmse.mat,
                 prmse.mat=prmse.mat,prrmse.mat = prrmse.mat,
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1)
   return(outls)
 }
-
 
 

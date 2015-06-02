@@ -16,8 +16,8 @@ source('link_fun_code/gev.mle.R')
 #including 'logit','probit','robit','gev','splogit'
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
-### baisc nonlinear form x1^2 + x1 
-link.compare.n1<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000)                                                                                                                                                                                                                                                                                                  
+### baisc nonlinear form -0.2*(x-3)^2+4
+link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000)                                                                                                                                                                                                                                                                                                  
 {
   ### output ####
   rmse.logit <- rmse.probit <- rmse.gev <- rmse.robit <- rmse.splogit <- rmse.pspline  <- rep(0,nrep)
@@ -40,12 +40,12 @@ link.compare.n1<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list()
     set.seed(j+s0)
     x1 <- rnorm(4*ns,muv,sd = sdv)
     x1 <- (x1[x1 >= lowp & x1 <= upp])[1:ns]
-    eta0 <- x1^2+x1-3
-
+    eta0 <- -0.2*(x1-3)^2+4
+    
     ####new data ##### 
     newdata <- as.matrix(seq(min(x1),max(x1),length.out = len.newx))
     colnames(newdata) <- 'x1'
-    eta.new <- newdata^2 + newdata -3
+    eta.new <- -0.2*(newdata-3)^2+4
     
     if(model == 'logit')
     {
@@ -114,7 +114,7 @@ link.compare.n1<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list()
     
     pspline.fit <- psplinelink(y0 = y0,x0 = x1,deg = deg,lambda = lam, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
     
-
+    
     
     boundary.n1[j] <-  min(1-gev.fit$est[3]*cbind(1,x1)%*%gev.fit$est[1:2])
     
@@ -149,19 +149,18 @@ link.compare.n1<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list()
     prmse.splogit[j] <- sqrt(mean((splogit.pred - prob.new)^2))
     prmse.pspline[j] <- sqrt(mean((pspline.pred - prob.new)^2))
     #prmse.gam[j] <- sqrt(mean((as.numeric(gam.pred) - prob.new)^2))
-  
+    
     
     print(j)
   }
   
   rmse.mat <- cbind(rmse.logit,rmse.probit,rmse.robit,
-                   rmse.gev,rmse.splogit,rmse.pspline)
+                    rmse.gev,rmse.splogit,rmse.pspline)
   
   prmse.mat <- cbind(prmse.logit,prmse.probit,prmse.robit,
-                    prmse.gev,prmse.splogit,prmse.pspline)
+                     prmse.gev,prmse.splogit,prmse.pspline)
   
   outls <- list(rmse.mat = rmse.mat,prmse.mat=prmse.mat, 
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1)
   return(outls)
 }
-
