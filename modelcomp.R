@@ -311,7 +311,7 @@ prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.ma
 # prrmse.out <-  cbind(out.logit$prrmse.mat,out.probit$prrmse.mat,out.robit3$prrmse.mat,out.robit1$prrmse.mat,out.robit2$prrmse.mat, out.gev1$prrmse.mat,out.gev2$prrmse.mat,out.gev3$prrmse.mat,out.gev4$prrmse.mat,out.splogit.02$prrmse.mat, out.splogit.5$prrmse.mat)
 
 col.name <-  c('logit','probit','robit','gev','splogit','gam','pspline')
-row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(.02)','splogit(5)')
+row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(.2)','splogit(5)')
 
 save(rmse.out,prmse.out,file='output/output500_binary.RData')
 source('link_fun_code/tab.fig.fun.R')
@@ -455,21 +455,21 @@ out.gev3 <- link.compare.n2(model = 'gev',ns = ns0,nrep = nrep0,muv=-0.5,model.a
 
 out.gev4 <- link.compare.n2(model = 'gev',ns = ns0,s0 = 0,muv=-0.5,nrep = nrep0,model.args = list(xi=-1,locv=0),init.args = list(init = c(0,0.2),xi0=-0.5,nu0=1,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10),lamv = seq(1,50,length.out = 20))
 
-out.splogit.02<- link.compare.n1(model = 'splogit',ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=0.2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(1,50,length.out = 20))
+out.splogit.06<- link.compare.n2(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=0.6),init.args = list(init = c(0.1,0.2),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(1,50,length.out = 20))
 
 
-out.splogit.15<- link.compare.n1(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=1.5),init.args = list(init = c(0,0.2),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(5,50,length.out = 20))
+out.splogit.15<- link.compare.n2(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=1.5),init.args = list(init = c(0.1,0.2),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(1,50,length.out = 20))
 
-rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.02$rmse.mat,out.splogit.15$rmse.mat)
+rmse.out <-  cbind(out.logit$rmse.mat,out.probit$rmse.mat,out.robit3$rmse.mat,out.robit1$rmse.mat,out.robit2$rmse.mat, out.gev1$rmse.mat,out.gev2$rmse.mat,out.gev3$rmse.mat,out.gev4$rmse.mat,out.splogit.06$rmse.mat,out.splogit.15$rmse.mat)
 
-prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.02$prmse.mat,out.splogit.15$prmse.mat)
+prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.06$prmse.mat,out.splogit.15$prmse.mat)
 
 
 col.name <-  c('logit','probit','robit','gev','splogit','pspline')
-row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(0.2)','splogit(1.5)')
+row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)','gev(-0.5)',"gev(-1)",'splogit(0.6)','splogit(1.5)')
 
 library(gridExtra)
-save(rmse.out,prmse.out,file='output/output100_nonlinear.RData')
+save(rmse.out,prmse.out,file='output/output100_nonlinear2.RData')
 source('link_fun_code/tab.fig.fun.R')
 res <- tab.fig.fun(rmse.out,col.name = col.name,row.name = row.name,remove = FALSE)
 resp <- tab.fig.fun(prmse.out,col.name=col.name,row.name=row.name,remove=FALSE)

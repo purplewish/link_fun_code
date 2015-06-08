@@ -97,6 +97,7 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,model.args = list()
       
     }
     
+    prob0[prob0>1]=1
     y0 <- rbinom(ns,size = 1,prob = prob0)
     
     init <- init.args$init
