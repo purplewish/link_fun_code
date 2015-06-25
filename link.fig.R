@@ -13,6 +13,21 @@ ggplot(data.frame(x=c(-7, 7)), aes(x)) +
 dev.off()
 
 
+splogit.link <- function(eta0,r0)
+{
+  if(r0 >0 & r0 <=1)
+  {
+    prob0 <- exp(eta0)/((1+exp(eta0/r0))^r0)
+  }
+  
+  if(r0 > 1)
+  {
+    eta.new <- -r0*eta0
+    prob0 <- 1-(exp(eta.new)/(1+exp(eta.new)))^(1/r0)
+  }
+  return(prob0)
+}
+
 
 #### splogit ####
 
@@ -30,17 +45,62 @@ dev.off()
 
 
 ### comparison between gev and splogit ####
+
+r.fun <- function(r,xi,interval,nseq)
+{
+  x <- seq(interval[1],interval[2],length.out = nseq)
+  gev.value <- 1-pgev(-x,loc=0,scale=1,shape=xi)
+  splogit.value <- splogit.link(eta0 = x,r0 = r)
+  dif <- sum((gev.value - splogit.value)^2)
+  return(dif)
+}
+
+r1.fun <- function(r)
+{
+  r.fun(r,xi=-1,interval=c(-6,6),nseq=2000)
+}
+
+r2.fun <- function(r)
+{
+  r.fun(r,xi=1,interval=c(-5,5),nseq=2000)
+}
+optimize(r1.fun,c(0,10))
+optimize(r2.fun,c(0.1,2))
+
+r.fun.skew <- function(r,xi)
+{
+  if(r>0 & r <1)
+  {
+    value <- 1-1*(r/(r+1))^(r)-exp(-(1+xi))
+  }
+  
+  if(r >1)
+  {
+    value<- *(1/(r+1))^(1/r)- exp(-(1+xi))
+  }
+  return(value)
+}
+
+rs1 <- function(r)
+{
+  r.fun.skew(r,-1)
+}
+
+
+library(gridExtra)
+
 pdf('document/figures/comparison/comparisonlink.pdf',width = 14,height = 6)
 c1 <- ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
   stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = -1), aes(color='gev2' ))+
-  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 2), aes(color='splogit2'))+
-  scale_colour_manual(name='link',values=c('gev2'="green",'splogit2'='blue'),labels=c(expression(paste('GEV: ',xi,'=',-1)),paste('splogit:','r','=',2)))+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 1.1174), aes(color='splogit2'))+
+  stat_function(fun = function(x) splogit.link(eta0=x,r0=0.7840), aes(color='splogit1'))+
+  scale_colour_manual(name='link',values=c('gev2'="green",'splogit2'='blue','splogit1'='red'),labels=c(expression(paste('GEV: ',xi,'=',-1)),paste('splogit:','r','=',1.1174),paste('splogit:','r','=',0.7840)))+
   theme_bw()+theme(legend.text.align=0)
 
 c2 <- ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
   stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = 1), aes(color='gev2' ))+
-  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 0.02), aes(color='splogit2'))+
-  scale_colour_manual(name='link',values=c('gev2'="green",'splogit2'='blue'),labels=c(expression(paste('GEV: ',xi,'=',1)),paste('splogit:','r','=',0.02)))+theme_bw()+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 0.4986), aes(color='splogit2'))+
+  scale_colour_manual(name='link',values=c('gev2'="green",'splogit2'='blue'),labels=c(expression(paste('GEV: ',xi,'=',1)),paste('splogit:','r','=',0.4986)))+theme_bw()+
   theme(legend.text.align=0)
 grid.arrange(c1,c2,ncol=2)
 dev.off()

@@ -36,13 +36,19 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
     
     if(!monotone)
     {
+      Dmat1 <- matrix(0,ncol = bs.nc, nrow = bs.nc -2)
+      Dmat1[cbind(1:(bs.nc-2),1:(bs.nc-2))] <- 1
+      Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
+      Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
      
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
-        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,])%*%t(bs0[index,])%*%wt%*%z
+        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0[index,])%*%wt%*%z
+        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
+        traceH <- sum(diag(Hmat))
     }
     
     if(monotone)
@@ -66,6 +72,9 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
 #         delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
                 delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         
+    Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+
+                    kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
+   traceH <- sum(diag(Hmat))
       
     }
     
@@ -84,9 +93,9 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
       du.eta <- muhat*(1-muhat)* fun.deriv*den.value
       z.beta <- eta.stand +dd*(y0 - muhat)/du.eta
       wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2))
-      # beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
-      cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
-      beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
+       beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+#       cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
+#       beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
       if(beta.update[1] >0){
         beta.update <- beta.update/sqrt(sum(beta.update^2))
       }
@@ -111,7 +120,7 @@ delta.old <- delta.update
   fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
   res <- list(eta= eta,est = beta.update,delta=delta.update,fitted.values = fitted.values,
               qv=qv,deg=deg,kp=kp,nknots=nknots,knots=knots,d.value=d.value,atu=atu,
-              center=center,sd.value = sd.value,catv=catv)
+              center=center,sd.value = sd.value,catv=catv,traceH=traceH)
   
   return(res)
 }
@@ -146,13 +155,17 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
       
       if(!monotone)
       {
+        Dmat1 <- matrix(0,ncol = bs.nc, nrow = bs.nc -2)
+        Dmat1[cbind(1:(bs.nc-2),1:(bs.nc-2))] <- 1
+        Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
+        Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
         
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
-        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,])%*%t(bs0[index,])%*%wt%*%z
+        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0[index,])%*%wt%*%z
         Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
         traceH <- sum(diag(Hmat))
       }
@@ -178,8 +191,10 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
         #         delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
         delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         
-        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
+        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+
+                        kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
         traceH <- sum(diag(Hmat))
+        
       }
       
       ### update beta ####                                                                                                                                                                                                                                                                                                                                                                                                                                          
@@ -197,9 +212,9 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
       du.eta <- muhat*(1-muhat)* fun.deriv*den.value
       z.beta <- eta.stand +dd*(y0 - muhat)/du.eta
       wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2))
-      # beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
-      cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
-      beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
+      beta.update <- solve(t(xmats)%*%wt.beta%*%xmats)%*%t(xmats)%*%wt.beta%*%z.beta
+      #       cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
+      #       beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
       if(beta.update[1] >0){
         beta.update <- beta.update/sqrt(sum(beta.update^2))
       }
