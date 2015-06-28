@@ -75,8 +75,8 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     
     if(case ==3)
     {
-      eta0 <- 0.2*x1^3+0.3*x1^2+0.2*x1
-      eta.new <- 0.2*newdata^3+0.3*newdata^2+0.2
+      eta0 <-0.2*(x1+1)^3-2
+      eta.new <- 0.2*(newdata+1)^3-2
     }
     
     if(model == 'logit')
