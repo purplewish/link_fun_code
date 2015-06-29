@@ -32,7 +32,7 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
     q.old <- (eta.old/atu+1)/2
     Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
     
-    bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
+    bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
     
     if(!monotone)
     {
@@ -41,13 +41,13 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
       Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
      
-        bs.eta <- bs0%*%delta.old
+        bs.eta <- bs.old%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
-        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0[index,])%*%wt%*%z
-        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
+        delta.update <- ginv(t(bs.old[index,])%*%wt%*%bs.old[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old[index,])%*%wt%*%z
+        Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old)%*%wt%*%bs.old
         traceH <- sum(diag(Hmat))
     }
     
@@ -63,29 +63,29 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
 
-        bs.eta <- bs0%*%delta.old
+        bs.eta <- bs.old%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
-#         cz <- chol(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
-#         delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
-                delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+#         cz <- chol(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
+#         delta.update <- chol2inv(cz)%*%t(bs.old)%*%wt%*%z
+                delta.update <- ginv(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%z
         
-    Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+
-                    kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
+    Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1)+
+                    kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%bs.old
    traceH <- sum(diag(Hmat))
       
     }
     
     ### update beta ####                                                                                                                                                                                                                                                                                                                                                                                                                                          
 
-      eta.old<- xmats%*%beta.old
-      eta.stand <- eta.old
-      q.old <- (eta.stand/atu+1)/2
-      Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )   
-      bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots =c(0,1),intercept=TRUE)
-      
+#       eta.old<- xmats%*%beta.old
+       eta.stand <- eta.old
+#       q.old <- (eta.stand/atu+1)/2
+#       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )   
+#       bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots =c(0,1),intercept=TRUE)
+#       
       muhat <- exp(bs.old %*% delta.update)/(1+exp(bs.old %*% delta.update))
       bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
       fun.deriv <- bs.deriv%*% delta.update
@@ -106,8 +106,8 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
     
      diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
      if(diff.total<= tol){break} 
-  beta.old <- beta.update
-delta.old <- delta.update
+   beta.old <- beta.update
+  delta.old <- delta.update
      if(j == MaxIter){print('MaxIter reached without convergence')}
     
   }
@@ -151,7 +151,7 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
       q.old <- (eta.old/atu+1)/2
       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
       
-      bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
+      bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
       
       if(!monotone)
       {
@@ -160,13 +160,13 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
         Dmat1[cbind(1:(bs.nc-2),2:(bs.nc-1))] <- -2
         Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
         
-        bs.eta <- bs0%*%delta.old
+        bs.eta <- bs.old%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
-        delta.update <- ginv(t(bs0[index,])%*%wt%*%bs0[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0[index,])%*%wt%*%z
-        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
+        delta.update <- ginv(t(bs.old[index,])%*%wt%*%bs.old[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old[index,])%*%wt%*%z
+        Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old)%*%wt%*%bs.old
         traceH <- sum(diag(Hmat))
       }
       
@@ -182,17 +182,17 @@ pspline.gcv3 <- function(y0,xmat,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
         Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
         
         
-        bs.eta <- bs0%*%delta.old
+        bs.eta <- bs.old%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
         wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
         z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
-        #         cz <- chol(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
-        #         delta.update <- chol2inv(cz)%*%t(bs0)%*%wt%*%z
-        delta.update <- ginv(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
+        #         cz <- chol(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)
+        #         delta.update <- chol2inv(cz)%*%t(bs.old)%*%wt%*%z
+        delta.update <- ginv(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%z
         
-        Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+
-                        kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
+        Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1)+
+                        kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%bs.old
         traceH <- sum(diag(Hmat))
         
       }

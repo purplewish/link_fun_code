@@ -1,8 +1,8 @@
 ################ application ####################
 source('link_fun_code/psplinelink3.R')
+source('link_fun_code/psplinelink4.R')
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
-source('link_fun_code/psplinelink3.R')
 source('link_fun_code/gev.mle.R')
 library(mgcv)
 weco <- read.table('data/weco.dat.txt',header=TRUE)
@@ -27,6 +27,11 @@ lam1<- pspline.gcv3(y0 = train.dat$kwit,xmat = train.dat[,c('sex','dex')],qv=1,c
 
 pspline.fit1 <- psplinelink3(y0 = train.dat$kwit,xmat = train.dat[,c('sex','dex')],qv=1,catv = 'sex',monotone = FALSE,nknots = 12,beta0 = c(1,1),lambda=,MaxIter = 1000,dd=1)
 
+beta0 <- coef(glm(kwit~sex+dex,weco,family = binomial(link='logit')))
+
+lam4<- pspline.gcv4(y0 = weco$kwit,xmat0 = weco[,c('sex','dex')],monotone = TRUE,nknots = 11,beta0 = beta0,MaxIter = 1000,lamv = seq(1,50,length.out=20))
+
+pspline.fit4 <- psplinelink4(y0 = weco$kwit,xmat0 = weco[,c('sex','dex')],monotone = TRUE,nknots = 11,beta0 =beta0 ,lambda=lam4,MaxIter = 1000)
 
 
 init.value <- c(0,0,0)
