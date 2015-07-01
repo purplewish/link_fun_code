@@ -123,7 +123,7 @@ gev.profile <- function(x0,y0,xi,par0=c(0,0),range=c(-1,1),maxeval = 3000)
 }
 
 ##### use nloptr #### 
-gev.mle.new <- function(y0,x0,par0,maxeval=1000)
+gev.mle.new <- function(y0,x0,size=1,par0,maxeval=1000)
 {
   xmat <- cbind(1,x0)
   nr <- length(y0) 
@@ -133,10 +133,10 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
     eta <- xmat%*%x[1:ncx]
     xi <- x[ncx+1]
     prob <- 1- pgev(-eta,loc = 0,scale = 1,shape = xi)
-    nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(log(1-prob)) 
+    nllv <- -sum(y0*(log(prob)-log(1-prob)))-sum(size*log(1-prob)) 
     
     elem <- apply(1- xi*(eta),1,function(x){max(0,x)})
-    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
+    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-size
     gr.beta <- as.numeric(-t(xmat)%*%(coef.gr*elem^(-1/xi-1)))
     gr.xi <- -sum(coef.gr*(log(elem)/xi^2 + eta/(xi*elem))*elem^(-1/xi))
     gr.value <- c(gr.beta,gr.xi)
@@ -159,7 +159,7 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
     xi <- para[ncx+1]
     eta.est <- xmat%*%beta.est
     elem <- apply(1- xi*(eta.est),1,function(x){max(0,x)})
-    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-1
+    coef.gr <- y0/(1-exp(-elem^(-1/xi)))-size
     gr.beta <- -t(xmat)%*%(coef.gr*elem^(-1/xi-1))
     gr.xi <- -sum(coef.gr*(log(elem)/xi^2 + eta.est/(xi*elem))*elem^(-1/xi))
     gr.value <- c(gr.beta,gr.xi)
