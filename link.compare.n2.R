@@ -18,7 +18,7 @@ source('link_fun_code/weights.fun.R')
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
 ### baisc nonlinear form -0.2*(x-3)^2+4
-link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000,weights.arg = 'equal')                                                                                                                                                                                                                                                                                                  
+link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000,weights.arg = 'equal')                                                                                          
 {
   ### output ####
   nw <- length(weights.arg)
@@ -26,8 +26,8 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
   prmse.ls <- list()
   
   
-  mat <- matrix(0,nrep,6)
-  colnames(mat)<- c('logit','probit','robit','gev','splogit','pspline')
+  mat <- matrix(0,nrep,7)
+  colnames(mat)<- c('logit','probit','robit','gev','splogit','pspline(wm)','pspline(m)')
   rmse.mat <- mat
   
   for(w in 1:nw)
@@ -68,8 +68,8 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     
     if(case == 2)
     {
-      eta0 <- -0.2*(x1-3)^2+4
-      eta.new <- -0.2*(newdata-3)^2+4
+      eta0 <- -0.2*(x1-3)^2-0.15*x1+3
+      eta.new <- -0.2*(newdata-3)^2-0.15*newdata+3
     }
 
     
@@ -135,7 +135,7 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     init <- init.args$init
     logit.fit <- glm(y0~x1,family = binomial(link='logit'))
     probit.fit <- glm(y0 ~ x1, family=binomial(link='probit'))
-    robit.fit <- robit.pxem(y0 = y0,x0 = x1,beta0 = init,nu0 = init.args$nu0,tol = 1e-3) 
+    robit.fit <- robit.pxem(y0 = y0,x0 = x1,beta0 = init,nu0 = init.args$nu0,tol = 1e-3,interval.nu = init.args$interval.nu) 
     gev.fit<- gev.mle.new(y0 = y0,x0 = x1,par0 = c(init,init.args$xi0),maxeval = 50000)
     splogit.fit <- splogit.mle(y0 = y0,x0 = x1,par0 = init,intervalr = init.args$intervalr)
     
@@ -143,9 +143,13 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     deg <- spline.control$deg
     bs.nc <- nknots+deg-1
     delta0 <- rep(1/bs.nc,bs.nc)
-    lam<- pspline.gcv(y0 = y0,x0 = x1,deg = deg, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
+    lam.wm<- pspline.gcv(y0 = y0,x0 = x1,deg = deg, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
     
-    pspline.fit <- psplinelink(y0 = y0,x0 = x1,deg = deg,lambda = lam, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
+    pspline.fit.wm <- psplinelink(y0 = y0,x0 = x1,deg = deg,lambda = lam.wm, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
+    
+    lam.m<- pspline.gcv(y0 = y0,x0 = x1,deg = deg, monotone = TRUE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
+    
+    pspline.fit.m <- psplinelink(y0 = y0,x0 = x1,deg = deg,lambda = lam.m, monotone = TRUE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
     
     
     
@@ -170,7 +174,8 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     robit.pred <- predict.pxem(est.obj = robit.fit,newdata = newdata)
     gev.pred <- predict.gev.new(est.obj = gev.fit,newdata = newdata)
     splogit.pred <- predict.splogit(est.obj = splogit.fit,newdata = newdata)
-    pspline.pred <- predict.pspline(est.obj = pspline.fit,newdata = newdata)
+    pspline.pred.wm <- predict.pspline(est.obj = pspline.fit.wm,newdata = newdata)
+    pspline.pred.m <- predict.pspline(est.obj = pspline.fit.m,newdata = newdata)
     #gam.pred <- predict(gam.fit,newdata = as.data.frame(newdata),type = 'response')
     
  
@@ -180,8 +185,8 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     rmse.mat[j,'robit'] <- sqrt(mean((robit.fit$fitted.values - prob0)^2))
     rmse.mat[j,'gev'] <- sqrt(mean((gev.fit$fitted.values - prob0)^2))
     rmse.mat[j,'splogit'] <- sqrt(mean((splogit.fit$fitted.values - prob0)^2))
-    rmse.mat[j,'pspline']<- sqrt(mean((pspline.fit$fitted.values - prob0)^2))
-   
+    rmse.mat[j,'pspline(wm)']<- sqrt(mean((pspline.fit.wm$fitted.values - prob0)^2))
+    rmse.mat[j,'pspline(m)']<- sqrt(mean((pspline.fit.m$fitted.values - prob0)^2))
     
     
     for(w in 1:nw )
@@ -191,12 +196,12 @@ link.compare.n2<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
       prmse.ls[[w]][j,'robit'] <- sqrt(sum(weights[,w]*(robit.pred- prob.new)^2))
       prmse.ls[[w]][j,'gev'] <- sqrt(sum(weights[,w]*(gev.pred - prob.new)^2))
       prmse.ls[[w]][j,'splogit'] <- sqrt(sum(weights[,w]*(splogit.pred - prob.new)^2))
-      prmse.ls[[w]][j,'pspline'] <- sqrt(sum(weights[,w]*(pspline.pred - prob.new)^2))
- 
+      prmse.ls[[w]][j,'pspline(wm)'] <- sqrt(sum(weights[,w]*(pspline.pred.wm - prob.new)^2))
+      prmse.ls[[w]][j,'pspline(m)'] <- sqrt(sum(weights[,w]*(pspline.pred.m - prob.new)^2))
       
     } 
     
-    print(c(j,lam))
+    print(c(j,lam.wm,lam.m))
   }
   
 

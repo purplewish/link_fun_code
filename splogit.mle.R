@@ -1,6 +1,6 @@
 ##### splogit #####
 ## use profile likelihood 
-splogit.mle <- function(y0,x0,par0,intervalr)
+splogit.mle <- function(y0,x0,size=1,par0,intervalr)
 {
   xmat <- cbind(1,x0)
   splogit.profile <- function(r)
@@ -10,7 +10,7 @@ splogit.mle <- function(y0,x0,par0,intervalr)
       nll.fun <- function(para)
       {
         yita0 <- as.numeric(xmat%*%para)
-        nll.value <- sum(y0*yita0 + (1-y0)*log((1+exp(yita0/r))^r-exp(yita0)) -r*log(1+exp(yita0/r)))   
+        nll.value <- sum(y0*yita0 + (size-y0)*log((1+exp(yita0/r))^r-exp(yita0)) -size*r*log(1+exp(yita0/r)))   
         return(-nll.value)
       }
       
@@ -19,7 +19,7 @@ splogit.mle <- function(y0,x0,par0,intervalr)
         yita0 <- as.numeric(xmat%*%para)
         gr1 <- (((1+exp(yita0/r))^(r-1))*exp(yita0/r) - exp(yita0))/((1+exp(yita0/r))^r-exp(yita0))
         gr2 <- exp(yita0/r)/(1+exp(yita0/r))
-        gr.value <- -t(xmat)%*%(y0 + (1-y0)*gr1 - gr2)
+        gr.value <- -t(xmat)%*%(y0 + (size-y0)*gr1 - gr2*size)
         return(gr.value)
       }
       
@@ -33,7 +33,7 @@ splogit.mle <- function(y0,x0,par0,intervalr)
       {
         yita0 <- as.numeric(xmat%*%para)
         yita.new <- -r*yita0
-        nll.value <- sum(y0*log((1+exp(yita.new))^(1/r) - exp(-yita0)) - (1-y0)*yita0 - (1/r)*log(1+exp(yita.new)))  
+        nll.value <- sum(y0*log((1+exp(yita.new))^(1/r) - exp(-yita0)) - (size-y0)*yita0 - (size/r)*log(1+exp(yita.new)))  
         return(-nll.value)
       }
       
@@ -45,7 +45,7 @@ splogit.mle <- function(y0,x0,par0,intervalr)
         gr1.den <- (1+exp(yita.new))^(1/r) - exp(-yita0)
         gr1 <- gr1.num/gr1.den
         gr2 <- exp(yita.new)/(1+exp(yita.new))
-        gr.value <- as.numeric(t(xmat)%*%(y0*gr1 +(1-y0) - gr2))
+        gr.value <- as.numeric(t(xmat)%*%(y0*gr1 +(size-y0) - gr2*size))
         return(gr.value)
       }
       out <- optim(par = par0,fn = nll.fun,gr = gr.fun,method = 'BFGS')   
@@ -58,20 +58,21 @@ splogit.mle <- function(y0,x0,par0,intervalr)
   
   if(r >0 & r <=1)
   {
+    
     nll.fun <- function(para)
     {
       yita0 <- as.numeric(xmat%*%para)
-      nll.value <- sum(y0*yita0 + (1-y0)*log((1+exp(yita0/r))^r-exp(yita0)) -r*log(1+exp(yita0/r)))   
+      nll.value <- sum(y0*yita0 + (size-y0)*log((1+exp(yita0/r))^r-exp(yita0)) -size*r*log(1+exp(yita0/r)))   
       return(-nll.value)
     }
     
-    gr.fun <- function(par)
+    gr.fun <- function(para)
     {
-      yita0 <- as.numeric(xmat%*%par)
+      yita0 <- as.numeric(xmat%*%para)
       gr1 <- (((1+exp(yita0/r))^(r-1))*exp(yita0/r) - exp(yita0))/((1+exp(yita0/r))^r-exp(yita0))
       gr2 <- exp(yita0/r)/(1+exp(yita0/r))
-      gr <- as.numeric(-t(xmat)%*%(y0 + (1-y0)*gr1 - gr2))
-      return(gr)
+      gr.value <- -t(xmat)%*%(y0 + (size-y0)*gr1 - gr2*size)
+      return(gr.value)
     }
     
     out <- optim(par = par0,fn = nll.fun,gr = gr.fun,method = 'BFGS')
@@ -80,12 +81,11 @@ splogit.mle <- function(y0,x0,par0,intervalr)
   
   if(r > 1)
   {
-    nll.fun <- function(par)
+    nll.fun <- function(para)
     {
-      yita0 <- as.numeric(xmat%*%par)
+      yita0 <- as.numeric(xmat%*%para)
       yita.new <- -r*yita0
-      prob0 <- 1-(exp(yita.new)/(1+exp(yita.new)))^(1/r)
-      nll.value <- sum(y0*log((1+exp(yita.new))^(1/r) - exp(-yita0)) - (1-y0)*yita0 - (1/r)*log(1+exp(yita.new)))  
+      nll.value <- sum(y0*log((1+exp(yita.new))^(1/r) - exp(-yita0)) - (size-y0)*yita0 - (size/r)*log(1+exp(yita.new)))  
       return(-nll.value)
     }
     
@@ -97,9 +97,10 @@ splogit.mle <- function(y0,x0,par0,intervalr)
       gr1.den <- (1+exp(yita.new))^(1/r) - exp(-yita0)
       gr1 <- gr1.num/gr1.den
       gr2 <- exp(yita.new)/(1+exp(yita.new))
-      gr.value <- as.numeric(t(xmat)%*%(y0*gr1 +(1-y0) - gr2))
+      gr.value <- as.numeric(t(xmat)%*%(y0*gr1 +(size-y0) - gr2*size))
       return(gr.value)
     }
+    
     out <- optim(par = par0,fn = nll.fun,gr = gr.fun,method = 'BFGS') 
     
   }

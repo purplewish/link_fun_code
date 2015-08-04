@@ -7,7 +7,7 @@ library(MASS)
 ## qv is value of quantile value of qv ####
 # cat is the name of categorical data ###
 psplinelink4<- function(y0,xmat0,deg = 3,kp = 1e6,nknots=10,
-                        monotone=TRUE,beta0,delta0,catv=NULL,
+                        monotone=TRUE,beta0,delta0,
                         tol = 1e-8,lambda=20,MaxIter=1000,boundary)
 {
   
@@ -109,7 +109,7 @@ psplinelink4<- function(y0,xmat0,deg = 3,kp = 1e6,nknots=10,
   fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
   
   res <- list(eta= eta,est = beta.update,delta=delta.update,fitted.values = fitted.values,
-              deg=deg,kp=kp,nknots=nknots,knots=knots,traceH=traceH,eta.center=eta.center,eta.sd=eta.sd)
+              deg=deg,kp=kp,nknots=nknots,knots=knots,traceH=traceH,eta.center=eta.center,eta.sds=eta.sds)
   
   return(res)
 }
@@ -228,8 +228,6 @@ pspline.gcv4 <- function(y0,xmat0,deg = 3,nknots=5,kp=1e6,
 }
 
 
-
-
 ##### predict based on pspline link function ######
 
 predict.pspline4 <- function(est.obj,newdata)
@@ -243,7 +241,7 @@ predict.pspline4 <- function(est.obj,newdata)
   eta.center <- est.obj$eta.center
   eta.sds <- est.obj$eta.sds
   
-  eta <- newdata%*%est
+  eta <- cbind(1,newdata)%*%est
   eta.std <- (eta - eta.center)/eta.sds
   bs.value <- bs(eta.std,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = knots[c(1,length(knots))],intercept=TRUE)
   eta.bs <- bs.value%*%delta.est

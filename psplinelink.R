@@ -1,6 +1,6 @@
 #### identification solved, no intercept, beta1 =1 #####
 library(splines)
-psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0,tol = 1e-4,boundary,MaxIter)
+psplinelink <- function(y0,x0,size=1,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0,tol = 1e-4,boundary,MaxIter)
 {
   bs.nc <- nknots+deg-1
   beta.old <- 1
@@ -25,8 +25,8 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0
 
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
-        wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
-        z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
+        wt <- diag(as.numeric(size*bs.mu*(1-bs.mu)))
+        z <- bs.eta+(y0-size*bs.mu)/as.numeric(size*bs.mu*(1-bs.mu)) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%z
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
@@ -51,8 +51,8 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0
       {
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
-        wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
-        z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
+        wt <- diag(as.numeric(size*bs.mu*(1-bs.mu)))
+        z <- bs.eta+(y0-size*bs.mu)/as.numeric(size*bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         diff.value <- sqrt(mean((delta.update-delta.old)^2))
@@ -79,7 +79,7 @@ psplinelink <- function(y0,x0,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE,delta0
 
 
 ####combine together ####
-pspline.gcv <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary,lamv=seq(5,20,length.out = 10),MaxIter=1000)
+pspline.gcv <- function(y0,x0,size=1,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,delta0,tol = 1e-4,boundary,lamv=seq(5,20,length.out = 10),MaxIter=1000)
 {
   bs.nc <- nknots+deg-1
   lam.fun<- function(lambda)
@@ -107,8 +107,8 @@ pspline.gcv <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
         
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
-        wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
-        z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
+        wt <- diag(as.numeric(size*bs.mu*(1-bs.mu)))
+        z <- bs.eta+(y0-size*bs.mu)/as.numeric(size*bs.mu*(1-bs.mu)) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%z
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
@@ -136,8 +136,8 @@ pspline.gcv <- function(y0,x0,deg = 3,lam.interval,kp=1e8,nknots,monotone=TRUE,d
       {
         bs.eta <- bs0%*%delta.old
         bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
-        wt <- diag(as.numeric(bs.mu*(1-bs.mu)))
-        z <- bs.eta+(y0-bs.mu)/as.numeric(bs.mu*(1-bs.mu)) 
+        wt <- diag(as.numeric(size*bs.mu*(1-bs.mu)))
+        z <- bs.eta+(y0-size*bs.mu)/as.numeric(size*bs.mu*(1-bs.mu)) 
         Vmat <- diag(as.numeric(Dmat%*%delta.old) <0 ) 
         delta.update <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%z
         diff.value <- sqrt(mean((delta.update-delta.old)^2))
