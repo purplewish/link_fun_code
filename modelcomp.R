@@ -272,7 +272,7 @@ dev.off()
 ###### comparison of two covariates ####
 source('link_fun_code/link.compare.b3.R')
 ns0 <- 100
-nrep0 <- 10
+nrep0 <- 100
 
 out.logit1 <- link.compare.b3(model = 'logit',ns = ns0,nrep = nrep0,s0=0,
                             muv = -0.5,model.args = list(beta0=c(0,1,1)),
