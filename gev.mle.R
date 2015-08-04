@@ -105,7 +105,7 @@ gev.profile <- function(x0,y0,xi,par0=c(0,0),range=c(-1,1),maxeval = 3000)
   
   
   res <- nloptr(x0=par0, eval_f=nll, eval_g_ineq = eval_g1, 
-                opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval), xmat = xmat,xi=xi )  
+                opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=FALSE,maxeval=maxeval), xmat = xmat,xi=xi )  
     
   est <-  res$solution
   eta.est <- xmat%*%est
@@ -152,7 +152,7 @@ gev.mle.new <- function(y0,x0,par0,maxeval=1000)
   }
   
   res <- nloptr( x0=par0, eval_f=nll, eval_g_ineq = eval_g1, 
-                 opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=TRUE,maxeval=maxeval),xmat = xmat )  
+                 opts = list("algorithm"="NLOPT_LD_SLSQP", "check_derivatives"=FALSE,maxeval=maxeval),xmat = xmat )  
   gr.gev <- function(para)
   {
     beta.est <- para[1:ncx]

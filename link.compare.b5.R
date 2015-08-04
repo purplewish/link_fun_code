@@ -5,7 +5,7 @@ library(nloptr)
 library(mgcv)
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
-source('link_fun_code/psplinelink3.R')
+source('link_fun_code/psplinelink5.R')
 source('link_fun_code/gev.mle.R')
 source('link_fun_code/weights.fun.R')
 # ns: sample size, nrep: number of replication; beta0: true parameters;
@@ -20,11 +20,11 @@ source('link_fun_code/weights.fun.R')
 ### weights.arg is a vector to specify what kinds of weights are given in the prediction. it can be "equal",'both','left','right'
 
 
-link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,50,length.out = 20),iter=2000)                             
+link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10),lamv=seq(5,50,length.out = 20),iter=2000)                             
 {
   ### output ####
   nw <- length(weights.arg)
-
+  
   prmse.ls <- list()
   
   mat <- matrix(0,nrep,7)
@@ -33,10 +33,10 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
   
   for(w in 1:nw)
   {
-   prmse.ls[[w]] <- mat
+    prmse.ls[[w]] <- mat
   }
   
-   names(prmse.ls) <- weights.arg
+  names(prmse.ls) <- weights.arg
   
   
   betav <- model.args$beta0
@@ -47,14 +47,14 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
   splogit.rv.n1 <- matrix(0,nrep,nb)
   boundary.n1 <- rep(0,nrep)
   
-
+  
   
   if(is.null(bound)==FALSE)
   {
     lowp <- muv - bound*sdv
     upp <- muv + bound*sdv
   }
-
+  
   
   for(j in 1:nrep)
   {
@@ -68,7 +68,7 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     {
       x1 <- rnorm(ns,muv,sd=sdv)
     }
-
+    
     x2 <- rbinom(ns,size=1,prob=0.5)
     eta0 <- cbind(1,x1,x2)%*%betav
     xmat0 <- cbind(x1,x2)
@@ -130,8 +130,7 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     
     y0 <- rbinom(ns,size = 1,prob = prob0)
     
-    
-    dd <- spline.control$dd
+  
     init <- init.args$init
     
     deg <- spline.control$deg
@@ -143,10 +142,9 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     gev.fit<- gev.mle.new(y0 = y0,x0 = xmat0,par0 = c(init,init.args$xi0),maxeval = 50000)
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
+    lam<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=0.95,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
     
-    lam<- pspline.gcv3(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv,dd=dd)
-    
-    pspline.fit <- psplinelink3(y0 = y0,xmat = xmat0,qv=1,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter,dd=dd)
+    pspline.fit <- psplinelink5(y0 = y0,xmat = xmat0,qv=0.95,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter)
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     
@@ -164,14 +162,14 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     {
       weights[,w] <- weights.fun(weights.arg[w],data = newdata[,1])
     }
- 
+    
     #### ----------------------------predict for new data ------------------------------####
     logit.pred <- predict(logit.fit,newdata = as.data.frame(newdata),type = 'response')
     probit.pred <- predict(probit.fit,newdata = as.data.frame(newdata),type = 'response')
     robit.pred <- predict.pxem(est.obj = robit.fit,newdata = newdata)
     gev.pred <- predict.gev.new(est.obj = gev.fit,newdata = newdata)
     splogit.pred <- predict.splogit(est.obj = splogit.fit,newdata = newdata)
-    pspline.pred <- predict.pspline3(est.obj = pspline.fit,newdata = newdata)
+    pspline.pred <- predict.pspline5(est.obj = pspline.fit,newdata = newdata)
     gam.pred <- predict(gam.fit,newdata = as.data.frame(newdata),type = 'response')
     
     
@@ -183,7 +181,7 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     rmse.mat[j,'pspline']<- sqrt(mean((pspline.fit$fitted.values - prob0)^2))
     rmse.mat[j,'gam'] <- sqrt(mean((gam.fit$fitted.values - prob0)^2))
     
-      
+    
     for(w in 1:nw )
     {     
       prmse.ls[[w]][j,'logit'] <- sqrt(sum(weights[,w]*(logit.pred- prob.new)^2))
@@ -198,9 +196,6 @@ link.compare.b3<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     print(c(j,lam))
   }
   
-
-
-   
   outls <- list(rmse.mat = rmse.mat, 
                 prmse.ls=prmse.ls,
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1)

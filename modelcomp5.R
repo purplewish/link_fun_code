@@ -1,306 +1,36 @@
-### 
-source('link_fun_code/robit.em.R')
-source('link_fun_code/splogit.mle.R')
-source('link_fun_code/psplinelink1.R')
-source('link_fun_code/gev.mle.R')
-library(evd)
-
-#### true model is GEV ####
-set.seed(4)
-xi <- 1
-ns <- 500
-beta0 <- c(1,1)
-x0 <- sort(runif(ns,min = -10,max = -0.3))
-yita0 <- cbind(1,x0)%*%beta0
-prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
-y0 <- rbinom(ns,size = 1,prob = prob0)
-summary(prob0)
-table(y0)
-
-logit.fit <- glm(y0~x0,family = binomial(link='logit'))
-beta0 <- logit.fit$coefficients
-probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
-gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(0,0,-1))
-gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(1,1,1),maxeval = 3000)
-robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = beta0,nu0 = 2,tol = 1e-3) 
-splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0.1,0),intervalr = c(0,3))
-
-deg <- 3
-nknots <- 20
-tol <- 1e-8
-boundary = range(x0)
-bs.nc <- nknots+deg-1
-delta0 <- rep(1/bs.nc,bs.nc)
-
-
-pspline.lam<- spline.aic(y0,x0,deg=deg,nknots = nknots,kp=1e6,lam.interval = c(0,40000) ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-
-pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-
-
-plot(x0,prob0,type='l')
-lines(x0,logit.fit$fitted.values)
-lines(x0,probit.fit$fitted.values)
-lines(x0,gev.fit$fitted.values)
-lines(x0,gev.fit.new$fitted.values)
-lines(x0,robit.fit$fitted.values)
-lines(x0,splogit.fit$fitted.values)
-lines(x0,pspline.fit$fitted.value)
-
-
-##### xi =-1 #####
-mse.logit <- mse.probit <- mse.gev <- mse.gev.new <- mse.robit <- mse.splogit <- mse.pspline <- ks.logit <- ks.probit <- ks.gev <- ks.robit <- ks.splogit <- ks.pspline <- ks.gev.new <- rep(0,100) 
-grv1.n1<- grv2.n1 <- matrix(0,100,3)
-splogit.rv.n1 <- matrix(0,100,2)
-boundary1.n1 <- boundary2.n1 <- rep(0,100)
-for(s in 1:100)
-{
-  set.seed(s)
-  xi <- -1
-  ns <- 200
-  beta0 <- c(1,1)
-  x0 <- sort(runif(ns,min = -1.9,max = 1.5))
-  yita0 <- cbind(1,x0)%*%beta0
-  prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
-  y0 <- rbinom(ns,size = 1,prob = prob0)
-  
-  logit.fit <- glm(y0~x0,family = binomial(link='logit'))
-  beta0 <- logit.fit$coefficients
-  probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
-  gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(0,0,-1))
-  gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0,0,-1),maxeval = 3000)
-  robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = c(0,0),nu0 = 2,tol = 1e-3) 
-  splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0,0),intervalr = c(0.03,10))
-  
-  deg <- 3
-  nknots <- 20
-  tol <- 1e-8
-  boundary = range(x0)
-  bs.nc <- nknots+deg-1
-  delta0 <- rep(1/bs.nc,bs.nc)
-  
-  pspline.lam<- spline.aic(y0,x0,deg=deg,nknots = nknots,kp=1e6,lam.interval = c(0,20000) ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-  
-  pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-  
-  
-  boundary1.n1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
-  boundary2.n1[s] <- min(1-gev.fit.new$est[3]*cbind(1,x0)%*%gev.fit.new$est[1:2])
-  
-  mse.logit[s] <- mean((logit.fit$fitted.values - prob0)^2)
-  mse.probit[s] <- mean((probit.fit$fitted.values - prob0)^2)
-  mse.gev[s] <- mean((gev.fit$fitted.values - prob0)^2)
-  mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
-  mse.robit[s] <- mean((robit.fit$fitted.values - prob0)^2)
-  mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
-  mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
-  
-  ks.logit[s] <- ks.test(prob0,logit.fit$fitted.values)$p.value
-  ks.probit[s] <- ks.test(prob0,probit.fit$fitted.values)$p.value
-  ks.gev[s] <- ks.test(prob0,gev.fit$fitted.values)$p.value
-  ks.gev.new[s] <- ks.test(prob0,gev.fit.new$fitted.values)$p.value
-  ks.robit[s] <- ks.test(prob0,robit.fit$fitted.values)$p.value
-  ks.splogit[s] <- ks.test(prob0,splogit.fit$fitted.values)$p.value
-  ks.pspline[s] <- ks.test(prob0,pspline.fit$fitted.values)$p.value
-  
-  
-  grv1.n1[s,] <- gev.fit$gr
-  grv2.n1[s,] <- gev.fit.new$gr
-  splogit.rv.n1[s,] <- splogit.fit$gr
-  
-  print(s)
-  
-}
-
-count.fun <- function(pv,cutoff)
-{
-  sum(pv <=cutoff)
-}
-
-mse.mat.n1 <- cbind(mse.logit,mse.probit,mse.gev,mse.gev.new,mse.robit,mse.splogit,mse.pspline)
-apply(mse.mat.n1,2,mean)
-pmat.n1 <- cbind(ks.logit,ks.probit,ks.gev,ks.gev.new,ks.robit,ks.splogit,ks.pspline)
-apply(pmat.n1,2,function(x) count.fun(x,0.05))
-mean(mse.logit)
-mean(mse.probit)
-mean(mse.gev)
-mean(mse.robit)
-mean(mse.splogit)
-mean(mse.pspline)
-
-
-xi <- -1
-ns <- 500
-beta0 <- c(1,1)
-x0 <- sort(runif(ns,min = -2,max = 1.5))
-yita0 <- cbind(1,x0)%*%beta0
-prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
-y0 <- rbinom(ns,size = 1,prob = prob0)
-source('code/link.compare.R')
-
-
-##### xi =1 ####
-mse.logit <- mse.probit <- mse.gev <- mse.gev.new <- mse.robit <- mse.splogit <- mse.pspline <- ks.logit <- ks.probit <- ks.gev <- ks.robit <- ks.splogit <- ks.pspline <- ks.gev.new <- rep(0,100) 
-grv1.p1<- grv2.p1 <- matrix(0,100,3)
-splogit.rv.p1 <- matrix(0,100,2)
-boundary1.p1 <- boundary2.p1 <- rep(0,100)
-for(s in 1:100)
-{
-  # s <- 84
-  set.seed(s)
-  xi <- 1
-  ns <- 500
-  beta0 <- c(1,1)
-  x0 <- sort(runif(ns,min = -10,max = -0.3))
-  yita0 <- cbind(1,x0)%*%beta0
-  prob0 <- 1-pgev(-yita0,loc = 0,scale = 1,shape = xi)
-  y0 <- rbinom(ns,size = 1,prob = prob0)
-  
-  logit.fit <- glm(y0~x0,family = binomial(link='logit'))
-  beta0 <- logit.fit$coefficients
-  probit.fit <- glm(y0 ~ x0, family=binomial(link='probit'))
-  gev.fit <- gev.mle.xi(x = x0,y = y0,par0 = c(1,1,1))
-  gev.fit.new <- gev.mle.new(y0 = y0,x0 = x0,par0 = c(0.1,0.1,1),maxeval = 3000)
-  robit.fit <- robit.pxem(y0 = y0,x0 = x0,beta0 = c(0,0),nu0 = 2,tol = 1e-3) 
-  splogit.fit <- splogit.mle(y0 = y0,x0 = x0,par0 = c(0,0),intervalr = c(0.01,10))
-  
-  deg <- 3
-  nknots <- 20
-  tol <- 1e-8
-  boundary = range(x0)
-  bs.nc <- nknots+deg-1
-  delta0 <- rep(1/bs.nc,bs.nc)
-  
-  pspline.lam<- spline.aic(y0,x0,deg=deg,nknots = nknots,kp=1e6,lam.interval = c(0,20000) ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-  
-  pspline.fit <- splinelink(y0,x0,deg=deg,nknots = nknots,kp=1e6,lambda = pspline.lam ,delta0 = delta0,boundary = range(x0), monotone = TRUE)
-  
-  
-  boundary1.p1[s] <-  min(1-gev.fit$est[3]*cbind(1,x0)%*%gev.fit$est[1:2])
-  boundary2.p1[s] <- min(1-gev.fit.new$est[3]*cbind(1,x0)%*%gev.fit.new$est[1:2])
-  
-  mse.logit[s] <- mean((logit.fit$fitted.values - prob0)^2)
-  mse.probit[s] <- mean((probit.fit$fitted.values - prob0)^2)
-  mse.gev[s] <- mean((gev.fit$fitted.values - prob0)^2)
-  mse.gev.new[s] <- mean((gev.fit.new$fitted.values - prob0)^2)
-  mse.robit[s] <- mean((robit.fit$fitted.values - prob0)^2)
-  mse.splogit[s] <- mean((splogit.fit$fitted.values - prob0)^2)
-  mse.pspline[s] <- mean((pspline.fit$fitted.values - prob0)^2)
-  
-  ks.logit[s] <- ks.test(prob0,logit.fit$fitted.values)$p.value
-  ks.probit[s] <- ks.test(prob0,probit.fit$fitted.values)$p.value
-  ks.gev[s] <- ks.test(prob0,gev.fit$fitted.values)$p.value
-  ks.gev.new[s] <- ks.test(prob0,gev.fit.new$fitted.values)$p.value
-  ks.robit[s] <- ks.test(prob0,robit.fit$fitted.values)$p.value
-  ks.splogit[s] <- ks.test(prob0,splogit.fit$fitted.values)$p.value
-  ks.pspline[s] <- ks.test(prob0,pspline.fit$fitted.values)$p.value
-  
-  
-  grv1.p1[s,] <- gev.fit$gr
-  grv2.p1[s,] <- gev.fit.new$gr
-  splogit.rv.p1[s,] <- splogit.fit$gr
-  
-  print(s)
-  
-}
-
-mse.mat.p1 <- cbind(mse.logit,mse.probit,mse.gev,mse.gev.new,mse.robit,mse.splogit,mse.pspline)
-apply(mse.mat.p1,2,mean)
-pmat.p1 <- cbind(ks.logit,ks.probit,ks.gev,ks.gev.new,ks.robit,ks.splogit,ks.pspline)
-apply(pmat.p1,2,function(x) count.fun(x,0.05))
-
-
-plot(x0,prob0,type='l')
-lines(x0,logit.fit$fitted.values)
-lines(x0,probit.fit$fitted.values)
-lines(x0,gev.fit$fitted.values)
-lines(x0,gev.fit.new$fitted.values)
-lines(x0,robit.fit$fitted.values)
-lines(x0,splogit.fit$fitted.values)
-lines(x0,pspline.fit$fitted.value)
-
-
-
-##### comparison #####
-source('link_fun_code/link.compare.R')
-ns0 <- 500
-nrep0 <- 100
-
-out.gev1 <- link.compare(model = 'gev',s0=100,ns = ns0,nrep = nrep0,min.value = -10,max.value = -0.3,model.args = list(beta0=c(1,1),xi=1),init.args = list(init = c(0.1,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.gev2 <- link.compare(model = 'gev',ns = ns0,nrep = nrep0,min.value = -1.5,max.value = 1.4,model.args = list(beta0=c(1,1),xi=-1),init.args = list(init = c(0.1,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.logit <- link.compare(model = 'logit',ns = ns0,nrep = nrep0,min.value = -4,max.value = 2,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.probit<- link.compare(model = 'probit',ns = ns0,nrep = nrep0,min.value = -2.5,max.value = 1,model.args = list(beta0=c(1,1)),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.robit1<- link.compare(model = 'robit',ns = ns0,nrep = nrep0,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.robit2<- link.compare(model = 'robit',ns = ns0,nrep = nrep0,min.value = -5,max.value = 4,model.args = list(beta0=c(1,1),nu=2),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.splogit.05<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
-                              min.value = -4,max.value = 0,model.args = list(beta0=c(1,1),r=0.5),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.splogit.01<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
-                              min.value = -3.5,max.value = 0,model.args = list(beta0=c(1,1),r=0.1),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.splogit.2<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
-                             min.value = -2,max.value = 2,model.args = list(beta0=c(1,1),r=2),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-out.splogit.5<- link.compare(model = 'splogit',ns = ns0,nrep = nrep0,
-                             min.value = -1.2,max.value = 2,model.args = list(beta0=c(1,1),r=5),init.args = list(init = c(0,0),xi0=-1,nu0=2,r0=1,intervalr=c(0.03,10)))
-
-
-
-mse.out <-  cbind(out.logit$mse.mat,out.probit$mse.mat,out.robit1$mse.mat,out.robit2$mse.mat, out.gev1$mse.mat,out.gev2$mse.mat,out.splogit.01$mse.mat,out.splogit.05$mse.mat, out.splogit.2$mse.mat,out.splogit.5$mse.mat)
-
-
-save(mse.out,max.out,p.out,gr1.out,gr2.out,splogit.rv.mat,boundary1.mat,boundary2.mat,file = 'output/output2000.RData')
-
-
-source('link_fun_code/tab.fig.fun.R')
-
-load('output/output1000.RData')
-res <- tab.fig.fun(mse.out)
-res$mse
-gg <- res$gp + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=11))
-pdf('document/figures/comparison/plot1000_rel.pdf',width = 10,height = 6)
-gg
-dev.off()
-
-
+###  model compare new #### 
 ###### comparison of two covariates ####
-source('link_fun_code/link.compare.b3.R')
+source('link_fun_code/link.compare.b5.R')
 ns0 <- 100
 nrep0 <- 10
 
-out.logit1 <- link.compare.b3(model = 'logit',ns = ns0,nrep = nrep0,s0=0,
-                            muv = -0.5,model.args = list(beta0=c(0,1,1)),
-                            init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=seq(5,200,length.out = 30), spline.control = list(deg = 3,nknots = 10,dd=1),weights.arg=c('equal','both','left','right'))
+out.logit <- link.compare.b5(model = 'logit',ns = ns0,nrep = nrep0,s0=0,
+                              muv = -0.5,model.args = list(beta0=c(0,1,1)),
+                              init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)), spline.control = list(deg = 3,nknots = 10),weights.arg=c('equal','both','left','right'),iter=5000)
 
-out.probit<- link.compare.b3(model = 'probit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.probit<- link.compare.b5(model = 'probit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),
+                             spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.robit1<- link.compare.b3(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.robit1<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),
+                             spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.robit2<- link.compare.b3(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.robit2<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.robit3<- link.compare.b3(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.robit3<- link.compare.b5(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),llamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.gev1 <- link.compare.b3(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0,iter = 1000, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.gev1 <- link.compare.b5(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0,iter = 1000, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.gev2 <- link.compare.b3(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.gev2 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.gev3 <- link.compare.b3(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),xi=-0.5,locv=0),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.gev3 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),xi=-0.5,locv=0),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
-out.gev4 <- link.compare.b3(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.2),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
-
-
-out.splogit.02<- link.compare.b3(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
-
-
-out.splogit.5<- link.compare.b3(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv=seq(5,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.gev4 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.2),init.args = list(init = c(0,0.1,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
 
+out.splogit.02<- link.compare.b5(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
+
+
+out.splogit.5<- link.compare.b5(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10)),bound = 3,lamv=exp(seq(-5,15,length.out = 30)),weights.arg=c('equal','both','left','right'),spline.control = list(deg = 3,nknots = 11),iter=5000)
 
 
 prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.02$prmse.mat, out.splogit.5$prmse.mat)
@@ -461,7 +191,7 @@ out.robit2<- link.compare.n1(model = 'robit',ns = ns0,nrep = nrep0,muv =-0.5,mod
 
 out.robit3<- link.compare.n1(model = 'robit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(nu=0.6),init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10)),bound=3,lamv = seq(1,50,length.out = 20))
 
- out.gev1 <- link.compare.n1(model = 'gev',ns = ns0,s0=0,nrep = nrep0,muv=-0.5,model.args = list(xi=1,locv=-2),init.args = list(init = c(0,0),xi0=0.6,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(1,50,length.out = 20))
+out.gev1 <- link.compare.n1(model = 'gev',ns = ns0,s0=0,nrep = nrep0,muv=-0.5,model.args = list(xi=1,locv=-2),init.args = list(init = c(0,0),xi0=0.6,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(1,50,length.out = 20))
 
 out.gev2 <- link.compare.n1(model = 'gev',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(xi=0.5,locv=-1),init.args = list(init = c(0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10)),lamv = seq(1,50,length.out = 20))
 

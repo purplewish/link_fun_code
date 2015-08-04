@@ -47,8 +47,8 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
         delta.update <- ginv(t(bs.old[index,])%*%wt%*%bs.old[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old[index,])%*%wt%*%z
-        Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old)%*%wt%*%bs.old
-        traceH <- sum(diag(Hmat))
+        #Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs.old)%*%wt%*%bs.old
+       # traceH <- sum(diag(Hmat))
     }
     
     if(monotone)
@@ -72,20 +72,15 @@ psplinelink3<- function(y0,xmat,qv=1,deg = 3,kp = 1e6,nknots=10,
 #         delta.update <- chol2inv(cz)%*%t(bs.old)%*%wt%*%z
                 delta.update <- ginv(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1) +kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%z
         
-    Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1)+
-                    kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%bs.old
-   traceH <- sum(diag(Hmat))
+   # Hmat <- solve(t(bs.old)%*%wt%*%bs.old + lambda*t(Dmat1)%*%(Dmat1)+
+                #    kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs.old)%*%wt%*%bs.old
+   #traceH <- sum(diag(Hmat))
       
     }
     
-    ### update beta ####                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    ### update beta ####                                                                                                                                              
 
-#       eta.old<- xmats%*%beta.old
        eta.stand <- eta.old
-#       q.old <- (eta.stand/atu+1)/2
-#       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )   
-#       bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots =c(0,1),intercept=TRUE)
-#       
       muhat <- exp(bs.old %*% delta.update)/(1+exp(bs.old %*% delta.update))
       bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
       fun.deriv <- bs.deriv%*% delta.update
