@@ -67,14 +67,15 @@ psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol 
       diff.value <- sqrt(sum((delta.update-delta.old)^2))
       delta.old <- delta.update
       if(diff.value <= tol){break} 
-      if(j == MaxIter){print('MaxIter reached without convergence')}
+      
     }   
     
   }
   
   value <- -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))
+  indicator <- 1*(j==MaxIter)
   out <- list(fitted.values = bs.mu, eta = bs.eta,value=value,
-              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots)
+              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots,message=indicator)
   return(out)
 }
 
@@ -115,7 +116,6 @@ pspline.gcv50 <- function(y0,x0,deg = 3,nknots,monotone=TRUE,delta0,tol = 1e-4,b
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break}
-        if(j == MaxIter){print('MaxIter reached without convergence')}      
       }
       
       Hmat <- solve(t(wt*bs0)%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0)%*%bs0
@@ -152,7 +152,6 @@ pspline.gcv50 <- function(y0,x0,deg = 3,nknots,monotone=TRUE,delta0,tol = 1e-4,b
         diff.value <- sqrt(sum((delta.update-delta.old)^2))
         delta.old <- delta.update
         if(diff.value <= tol){break} 
-        if(j == MaxIter){print('MaxIter reached without convergence')}
       }   
       
       Hmat <- solve(t(wt*bs0)%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0)%*%bs0
@@ -160,13 +159,14 @@ pspline.gcv50 <- function(y0,x0,deg = 3,nknots,monotone=TRUE,delta0,tol = 1e-4,b
     }
     
     gcv <- mean((y0 - bs.mu)^2)/(1-traceH/length(y0))^2
-    
-    return(gcv)
+    indicator <- 1*(j==MaxIter)
+    return(c(gcv,indicator))
   }
   
-  gcvv <- unlist(lapply(lamv,lam.fun))
-  
-  lam.value <- lamv[which.min(gcvv)]
+  gcvv <- lapply(lamv,lam.fun)
+  gcvv.mat <- do.call(rbind,gcvv)
+  index.lam <- which.min(gcvv.mat[gcvv.mat[,2]==0,1])
+  lam.value <- (lamv[gcvv.mat[,2]==0])[index.lam]
   
   return(lam.value)
 }

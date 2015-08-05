@@ -95,7 +95,7 @@ psplinelink6<- function(y0,xmat,qv=1,deg = 3,nknots=10,
     index.deriv <- du.eta!=0
     z.beta <- eta.stand +(y0 - muhat)/du.eta
     wt.beta <- as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2)
-    beta.update <- solve(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
+    beta.update <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
     
     if(beta.update[1] >0){
       beta.update <- beta.update/sqrt(sum(beta.update^2))
@@ -152,7 +152,7 @@ psplinelink6<- function(y0,xmat,qv=1,deg = 3,nknots=10,
 
 #### pspline using GCV ###
 pspline.gcv6 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
-                         monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=exp(seq(-5,10,length.out = 50)),MaxIter = 100)
+                         monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=exp(seq(-5,10,length.out = 50)),MaxIter = 100,maxeval=100000)
 {  
   xmats <- scale(xmat) 
   xmats[,catv] <- xmat[,catv]
@@ -238,7 +238,7 @@ pspline.gcv6 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
       index.deriv <- du.eta!=0
       z.beta <- eta.stand +(y0 - muhat)/du.eta
       wt.beta <- as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2)
-      beta.update <- solve(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
+      beta.update <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
       
       if(beta.update[1] >0){
         beta.update <- beta.update/sqrt(sum(beta.update^2))
@@ -334,4 +334,4 @@ predict.pspline6 <- function(est.obj,newdata)
   
 }
 
-print(c('psplinelink5','pspline.gcv5','predict.pspline5'))
+print(c('psplinelink6','pspline.gcv6','predict.pspline6'))

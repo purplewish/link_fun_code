@@ -286,7 +286,7 @@ out.robit2<- link.compare.b3(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,mo
 
 out.robit3<- link.compare.b3(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=seq(2,200,length.out = 30),weights.arg=c('equal','both','left','right'))
 
-out.gev1 <- link.compare.b3(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0,iter = 1000, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),bound=3,spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(2,200,length.out = 30),weights.arg=c('equal','both','left','right'))
+out.gev1 <- link.compare.b3(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),bound=3,spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(2,200,length.out = 30),weights.arg=c('equal','both','left','right'),iter=2000)
 
 out.gev2 <- link.compare.b3(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1),init.args = list(init = c(0,0,0),xi0=0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),spline.control = list(deg = 3,nknots = 10,dd=1),lamv=seq(2,200,length.out = 30),weights.arg=c('equal','both','left','right'))
 

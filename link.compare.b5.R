@@ -20,7 +20,7 @@ source('link_fun_code/weights.fun.R')
 ### weights.arg is a vector to specify what kinds of weights are given in the prediction. it can be "equal",'both','left','right'
 
 
-link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10),lamv=seq(5,50,length.out = 20),iter=2000)                             
+link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,qv=0.95),lamv=seq(5,50,length.out = 20),iter=2000)                             
 {
   ### output ####
   nw <- length(weights.arg)
@@ -46,7 +46,7 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
   grv.n1 <- matrix(0,nrep,nb+1)
   splogit.rv.n1 <- matrix(0,nrep,nb)
   boundary.n1 <- rep(0,nrep)
-  
+  lam.track <- rep(0,nrep)
   
   
   if(is.null(bound)==FALSE)
@@ -138,13 +138,15 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     
     logit.fit <- glm(y0~x1+x2,family = binomial(link='logit'))
     probit.fit <- glm(y0 ~ x1+x2, family=binomial(link='probit'))
-    robit.fit <- robit.pxem(y0 = y0,x0 = xmat0,beta0 = init,nu0 = init.args$nu0,tol = 1e-3) 
+    robit.fit <- robit.pxem(y0 = y0,x0 = xmat0,beta0 = init,nu0 = init.args$nu0,tol = 1e-3,interval.nu=init.args$interval.nu) 
     gev.fit<- gev.mle.new(y0 = y0,x0 = xmat0,par0 = c(init,init.args$xi0),maxeval = 50000)
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
-    lam<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=0.95,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
+    qv <- spline.control$qv
+    lam<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
+   # lam<- pspline.aic5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
     
-    pspline.fit <- psplinelink5(y0 = y0,xmat = xmat0,qv=0.95,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter)
+    pspline.fit <- psplinelink5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter)
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     
@@ -193,12 +195,13 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
       prmse.ls[[w]][j,'gam'] <- sqrt(sum(weights[,w]*(as.numeric(gam.pred) - prob.new)^2))
       
     } 
-    print(c(j,lam))
+   
+    lam.track[j] <- lam
   }
   
   outls <- list(rmse.mat = rmse.mat, 
                 prmse.ls=prmse.ls,
-                gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1)
+                gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1,lam.track=lam.track)
   return(outls)
 }
 
