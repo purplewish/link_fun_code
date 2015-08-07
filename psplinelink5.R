@@ -183,6 +183,16 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
   Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
   bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
   
+  if(lambda==0)
+  {
+    Hmat <- solve(t(wt*bs0[,index])%*%bs0[,index]+ lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0[,index])%*%bs.old[,index]
+  }else
+  {
+    Hmat <- solve(t(wt*bs0)%*%bs.old+ lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0)%*%bs0
+  }
+  
+  traceH <- sum(diag(Hmat))
+  
   fitted.values <- 1/(1+exp(-bs0%*%delta.update))
   indicator = 1*(j==MaxIter)
   

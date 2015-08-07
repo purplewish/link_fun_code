@@ -26,7 +26,7 @@ out.gev3 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,s0=0,muv = -0.5,
 out.gev4 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 100)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
 
-out.splogit.02<- link.compare.b5(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.splogit.02<- link.compare.b5(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
 
 out.splogit.5<- link.compare.b5(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
