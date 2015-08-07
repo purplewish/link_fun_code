@@ -58,7 +58,7 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
       Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
       
       bs.eta <- bs.old%*%delta.old
-      bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+      bs.mu <- 1/(1+exp(-bs.eta))
       index <-  bs.mu > .Machine$double.eps
       wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
       z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
@@ -79,7 +79,7 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
       
       
       bs.eta <- bs.old%*%delta.old
-      bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+      bs.mu <- 1/(1+exp(-bs.eta))
       wt <- as.numeric(bs.mu*(1-bs.mu))
       z <- y0-bs.mu
       
@@ -139,14 +139,14 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
     }
     
     eta.stand <- eta.old
-    muhat <- exp(bs.old %*% delta.update)/(1+exp(bs.old %*% delta.update))
+    muhat <- 1/(1+exp(-bs.old %*% delta.update))
     bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
     fun.deriv <- bs.deriv%*% delta.update
     den.value<- dgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1)/(2*atu)
     du.eta <- muhat*(1-muhat)* fun.deriv*den.value
-    index.deriv <- du.eta!=0
     z.beta <- (y0 - muhat)/du.eta
     wt.beta <- as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2)
+    index.deriv <- du.eta!=0 & (is.na(wt.beta)==FALSE)
     deriv.first <- t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
     Delta.x <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%deriv.first
     
@@ -183,7 +183,7 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
   Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
   bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
   
-  fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
+  fitted.values <- 1/(1+exp(-bs0%*%delta.update))
   indicator = 1*(j==MaxIter)
   
   res <- list(eta= eta,est = beta.update,delta=delta.update,fitted.values = fitted.values,
@@ -228,7 +228,7 @@ pspline.gcv5 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
         Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
         
         bs.eta <- bs.old%*%delta.old
-        bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+        bs.mu <- 1/(1+exp(-bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
@@ -249,7 +249,7 @@ pspline.gcv5 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
         
         
         bs.eta <- bs.old%*%delta.old
-        bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+        bs.mu <- 1/(1+exp(-bs.eta))
         wt <- as.numeric(bs.mu*(1-bs.mu))
         z <- y0-bs.mu
         
@@ -309,14 +309,14 @@ pspline.gcv5 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
       }
       
       eta.stand <- eta.old
-      muhat <- exp(bs.old %*% delta.update)/(1+exp(bs.old %*% delta.update))
+      muhat <- 1/(1+exp(-bs.old %*% delta.update))
       bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
       fun.deriv <- bs.deriv%*% delta.update
       den.value<- dgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1)/(2*atu)
       du.eta <- muhat*(1-muhat)* fun.deriv*den.value
-      index.deriv <- du.eta!=0
       z.beta <- (y0 - muhat)/du.eta
       wt.beta <- as.numeric(muhat*(1-muhat)*fun.deriv^2*den.value^2)
+      index.deriv <- du.eta!=0 & (is.na(wt.beta)==FALSE)
       deriv.first <- t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
       Delta.x <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%deriv.first
       
@@ -363,7 +363,7 @@ pspline.gcv5 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
     traceH <- sum(diag(Hmat))
     
     
-    fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
+    fitted.values <- 1/(1+exp(-bs0%*%delta.update))
     
     gcv <- mean((y0 - fitted.values)^2)/(1-traceH/length(y0))^2
     indicator <- 1*(j==MaxIter)
@@ -415,7 +415,7 @@ pspline.aic5 <- function(y0,xmat,qv=0.95,deg = 3,nknots=5,catv=NULL,
         Dmat1[cbind(1:(bs.nc-2),3:bs.nc)] <- 1
         
         bs.eta <- bs.old%*%delta.old
-        bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+        bs.mu <- 1/(1+exp(-bs.eta))
         index <-  bs.mu > .Machine$double.eps
         wt <- diag(as.numeric(bs.mu[index]*(1-bs.mu[index])))
         z <- bs.eta[index]+(y0[index]-bs.mu[index])/as.numeric(bs.mu[index]*(1-bs.mu[index])) 
@@ -436,7 +436,7 @@ pspline.aic5 <- function(y0,xmat,qv=0.95,deg = 3,nknots=5,catv=NULL,
         
         
         bs.eta <- bs.old%*%delta.old
-        bs.mu <- exp(bs.eta)/(1+exp(bs.eta))
+        bs.mu <- 1/(1+exp(-bs.eta))
         wt <- as.numeric(bs.mu*(1-bs.mu))
         z <- y0-bs.mu
         
@@ -496,7 +496,7 @@ pspline.aic5 <- function(y0,xmat,qv=0.95,deg = 3,nknots=5,catv=NULL,
       }
       
       eta.stand <- eta.old
-      muhat <- exp(bs.old %*% delta.update)/(1+exp(bs.old %*% delta.update))
+      muhat <- 1/(1+exp(-bs.old %*% delta.update))
       bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
       fun.deriv <- bs.deriv%*% delta.update
       den.value<- dgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1)/(2*atu)
@@ -538,7 +538,7 @@ pspline.aic5 <- function(y0,xmat,qv=0.95,deg = 3,nknots=5,catv=NULL,
     Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
     bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
     
-    fitted.values <- exp(bs0%*%delta.update)/(1+exp(bs0%*%delta.update))
+    fitted.values <- 1/(1+exp(-bs0%*%delta.update))
     
     aic.value <- -2*sum(y0*log(fitted.values/(1-fitted.values))+log(1-fitted.values))+2*traceH
     indicator <- 1*(j==MaxIter)
@@ -581,7 +581,7 @@ predict.pspline5 <- function(est.obj,newdata)
   bs.value <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
   
   eta.bs <- bs.value%*%delta.est
-  prob.est <- exp(eta.bs)/(1+exp(eta.bs))
+  prob.est <- 1/(1+exp(-eta.bs))
   return(prob.est)
   
 }

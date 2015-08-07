@@ -6,29 +6,30 @@ nrep0 <- 100
 
 out.logit <- link.compare.b5(model = 'logit',ns = ns0,nrep = nrep0,s0=0,
                               muv = -0.5,model.args = list(beta0=c(0,1,1)),
-                              init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+                              init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.probit<- link.compare.b5(model = 'probit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),interval.nu=c(0.1,10)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.probit<- link.compare.b5(model = 'probit',ns = ns0,nrep = nrep0,s0=0,
+                             muv = -0.5,model.args = list(beta0=c(0,1,1),interval.nu=c(0.1,10)),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.robit1<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.robit1<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.robit2<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.robit2<- link.compare.b5(model = 'robit',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.robit3<- link.compare.b5(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.robit3<- link.compare.b5(model = 'robit',ns = ns0,s0=0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),nu=0.6),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.gev1 <- link.compare.b5(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.gev1 <- link.compare.b5(model = 'gev',ns = ns0,nrep =nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=1,locv=-1.5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.gev2 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.gev2 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0, model.args = list(beta0=c(0,1,1),xi=0.5,locv=-1),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.gev3 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,model.args = list(beta0=c(0,1,1),xi=-0.5,locv=0),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.gev3 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,s0=0,muv = -0.5,model.args = list(beta0=c(0,1,1),xi=-0.5,locv=0),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 100)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
-out.gev4 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
-
-
-out.splogit.02<- link.compare.b5(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.gev4 <- link.compare.b5(model = 'gev',ns = ns0,nrep = nrep0,muv = -0.5,s0=0,model.args = list(beta0=c(0,1,1),xi=-1,locv=1.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 100)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
 
-out.splogit.5<- link.compare.b5(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+out.splogit.02<- link.compare.b5(model = 'splogit',ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=0.2),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=0.95),weights.arg=c('equal','both','left','right'),iter=200)
+
+
+out.splogit.5<- link.compare.b5(model = 'splogit',s0=0,ns = ns0,nrep = nrep0,muv=-0.5,model.args = list(beta0=c(0,1,1),r=5),init.args = list(init = c(0,0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),lamv=10^(seq(-5,10,length.out = 50)), spline.control = list(deg = 3,nknots = 11,qv=1),weights.arg=c('equal','both','left','right'),iter=200)
 
 
 prmse.out <-  cbind(out.logit$prmse.mat,out.probit$prmse.mat,out.robit3$prmse.mat,out.robit1$prmse.mat,out.robit2$prmse.mat, out.gev1$prmse.mat,out.gev2$prmse.mat,out.gev3$prmse.mat,out.gev4$prmse.mat,out.splogit.02$prmse.mat, out.splogit.5$prmse.mat)

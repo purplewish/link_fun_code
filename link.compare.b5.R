@@ -197,6 +197,7 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     } 
    
     lam.track[j] <- lam
+    print(j)
   }
   
   outls <- list(rmse.mat = rmse.mat, 
