@@ -185,7 +185,7 @@ psplinelink5<- function(y0,xmat,qv=1,deg = 3,nknots=10,
   
   if(lambda==0)
   {
-    Hmat <- solve(t(wt*bs0[,index])%*%bs0[,index]+ lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0[,index])%*%bs.old[,index]
+    Hmat <- solve(t(wt*bs0[,index])%*%bs0[,index]+ lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0[,index])%*%bs0[,index]
   }else
   {
     Hmat <- solve(t(wt*bs0)%*%bs.old+ lambda*t(Dmat1)%*%(Dmat1))%*%t(wt*bs0)%*%bs0

@@ -78,13 +78,13 @@ robit.ecmc <- function(y0,x0,beta0,nu0,tol = 1e-3)
 
 
 ##### use pexem ####
-robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3,interval.nu)
+robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3,interval.nu,MaxIter=1000)
 {
   beta.old <- beta0
   nu.old <- nu0
   nr <- length(y0)
   xmat <- cbind(1,x0)
-  repeat
+  for(j in 1:MaxIter)
   {
     mu.old <- xmat%*%beta.old
     
@@ -126,9 +126,11 @@ robit.pxem <- function(y0,x0,beta0,nu0,tol=1e-3,interval.nu)
   }
   yita0 <- as.numeric(xmat%*%beta.new)
   prob0 <- pt(q = yita0,df = nu.new)
+  indicator <- 1*(j==MaxIter)
   ### aic #### 
   aic <- -2*sum(y0*log(prob0/(1-prob0))+log(1-prob0)) + 2*(length(beta0)+1)
-  return(list(beta = beta.new, nu = nu.new, eta = yita0,fitted.values = prob0,aic=aic))
+  return(list(beta = beta.new, nu = nu.new, eta = yita0,fitted.values = prob0,aic=aic,
+              message=indicator))
   
 }
 
