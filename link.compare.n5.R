@@ -140,11 +140,11 @@ link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     deg <- spline.control$deg
     bs.nc <- nknots+deg-1
     delta0 <- rep(1/bs.nc,bs.nc)
-    lam.wm<- pspline.aic50(y0 = y0,x0 = x1,deg = deg, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
+    lam.wm<- pspline.gcv50(y0 = y0,x0 = x1,deg = deg, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
     
     pspline.fit.wm <- psplinelink50(y0 = y0,x0 = x1,deg = deg,lambda = lam.wm, monotone = FALSE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
     
-    lam.m<- pspline.aic50(y0 = y0,x0 = x1,deg = deg, monotone = TRUE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
+    lam.m<- pspline.gcv50(y0 = y0,x0 = x1,deg = deg, monotone = TRUE,delta0=delta0,nknots = nknots,boundary = range(x1),lamv = lamv,MaxIter=iter)
     
     pspline.fit.m <- psplinelink50(y0 = y0,x0 = x1,deg = deg,lambda = lam.m, monotone = TRUE,delta0=delta0,nknots = nknots,boundary = range(x1),MaxIter=iter)
     

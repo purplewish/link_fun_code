@@ -95,7 +95,7 @@ psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol 
   traceH <- sum(diag(Hmat))
   
   out <- list(fitted.values = bs.mu, eta = bs.eta,value=value,
-              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots,message=indicator)
+              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots,message=indicator,traceH=traceH)
   return(out)
 }
 

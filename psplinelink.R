@@ -33,6 +33,9 @@ psplinelink <- function(y0,x0,size=1,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE
         if(diff.value <= tol){break}
         if(j == MaxIter){print('MaxIter reached without convergence')}      
     }
+      
+      Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1))%*%t(bs0)%*%wt%*%bs0
+      traceH <- sum(diag(Hmat))
 
     }
     
@@ -60,12 +63,13 @@ psplinelink <- function(y0,x0,size=1,deg = 3,lambda,kp=1e8,nknots,monotone=FALSE
         if(diff.value <= tol){break} 
         if(j == MaxIter){print('MaxIter reached without convergence')}
       }   
-
+      Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
+      traceH <- sum(diag(Hmat))
     }
-  
+    indicator <- 1*(j==MaxIter)
   value <- -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))
   out <- list(fitted.values = bs.mu, eta = bs.eta,value=value,
-              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots)
+              delta.est= delta.update,deg=deg,boundary=boundary,knots=knots,traceH=traceH,message=indicator)
   return(out)
 }
 
@@ -145,7 +149,6 @@ pspline.gcv <- function(y0,x0,size=1,deg = 3,lam.interval,kp=1e8,nknots,monotone
         if(diff.value <= tol){break} 
         if(j == MaxIter){print('MaxIter reached without convergence')}
       }   
-      
       Hmat <- solve(t(bs0)%*%wt%*%bs0 + lambda*t(Dmat1)%*%(Dmat1)+kp*t(Dmat)%*%Vmat%*%Dmat)%*%t(bs0)%*%wt%*%bs0
       traceH <- sum(diag(Hmat))
     }

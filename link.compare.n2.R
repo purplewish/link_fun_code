@@ -2,7 +2,6 @@
 ## for GEV use uniform distribution####
 library(evd)
 library(nloptr)
-library(bgeva)
 library(mgcv)
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
