@@ -3,6 +3,7 @@
 library(evd)
 library(nloptr)
 library(mgcv)
+library(quadprog)
 source('link_fun_code/robit.em.R')
 source('link_fun_code/splogit.mle.R')
 source('link_fun_code/psplinelink5.R')

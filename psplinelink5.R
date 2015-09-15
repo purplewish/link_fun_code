@@ -371,11 +371,15 @@ pspline.gcv5 <- function(y0,xmat,qv=1,deg = 3,nknots=5,catv=NULL,
     }
     
     traceH <- sum(diag(Hmat))
-    
+    traceHW <- sum(wt*diag(Hmat))
     
     fitted.values <- 1/(1+exp(-bs0%*%delta.update))
     
-    gcv <- mean((y0 - fitted.values)^2)/(1-traceH/length(y0))^2
+    #gcv <- mean((y0 - fitted.values)^2)/(1-traceH/length(y0))^2
+    #gcv <- -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))/(1-traceH/length(y0))^2
+   # gcv = -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + traceH/(length(y0)-traceHW)*sum(y0*(y0-bs.mu))
+   gcv <-  -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + 2*traceH/(length(y0)-traceH)*sum((y0-bs.mu)^2/(bs.mu*(1-bs.mu)))
+    #gcv <- mean((y0 - fitted.values)^2/wt)/(1-traceH/length(y0))^2
     indicator <- 1*(j==MaxIter)
     return(c(gcv,indicator))
   }

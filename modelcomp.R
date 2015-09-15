@@ -551,10 +551,10 @@ dev.off()
 
 ###### case 3 ########
 source('link_fun_code/link.compare.n2.R')
-ns0 <- 500
+ns0 <- 100
 nrep0 <- 100
 
-out.logit <- link.compare.n2(model = 'logit',ns = ns0,s0=0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),bound = 3,lamv=seq(1,200,length.out = 30),weights.arg=c('equal','both','left','right'),case=3,spline.control=list(deg=3,nknots=10))
+out.logit <- link.compare.n2(model = 'logit',ns = ns0,s0=0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),bound = 3,lamv=c(10^(seq(-5,10,length.out = 50)),seq(1,200,length.out = 30)),weights.arg=c('equal','both','left','right'),case=3,spline.control=list(deg=3,nknots=11))
 
 out.probit<- link.compare.n2(model = 'probit',ns = ns0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.4,10)),bound=3,lamv=seq(1,200,length.out = 30),weights.arg=c('equal','both','left','right'),case=3)
 

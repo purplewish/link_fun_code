@@ -1,5 +1,5 @@
 setwd("C:/Users/xinwang/Research/link_function/")
-source("C:/Users/xinwang/Research/link_function/link_fun_code/lyxout.R") 
+source("/Users/Xin/Research/link_function/link_fun_code/lyxout.R") 
 row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)',
               'gev(-0.5)',"gev(-1)",'splogit(0.6)','splogit(1.5)')
 

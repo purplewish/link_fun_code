@@ -26,3 +26,14 @@ print(xtable(t(apply(resn100_case1$ratio.ls$right,1,create.bf)),
              caption = "sample size is 100 for weighted RMSE of case 1 (3)",
              label = 'case1_100'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
 
+
+######## plot ######
+library(ggplot2)
+pdf("document/figures/curve.pdf")
+ggplot(data.frame(x=c(-3.5, 2.5)), aes(x))+
+  stat_function(fun = function(x) x^2+x-3, aes(color='curve1'))+
+  stat_function(fun=function(x)-0.2*(x-3)^2-0.15*x+3,aes(color='curve2'))+
+  stat_function(fun=function(x)0.2*(x+1)^3-2,aes(color='curve3'))+
+  scale_colour_manual(name='curve',values=c('curve1'="green",'curve2'='blue','curve3'='red'),labels=c('curve1','curve2','curve3'))+
+  theme_bw()+theme(legend.text.align=0)
+dev.off()
