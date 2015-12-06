@@ -18,12 +18,21 @@ source('link_fun_code/weights.fun.R')
 # the value of xi, r, nu are specified in model.args 
 # inital values of xi r and nu 
 ### baisc nonlinear form -0.2*(x-3)^2+4
-link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),spline.control = list(deg = 3,nknots = 11),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000,weights.arg = 'equal')                                                                                          
+
+ntruncated <- 3
+truncate.fun<- function(x,cutoff.value)
+{
+  xt <- unlist(lapply(unlist(lapply(x,function(x) max(x,cutoff.value[1]))),function(x) min(x,cutoff.value[2])))
+  return(xt)
+}
+
+link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args = list(),len.newx=200,init.args=list(init=c(0,0),xi0 =1,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),spline.control = list(deg = 3,nknots = 11),lamv=seq(1,50,length.out = 20),bound=3,nb=2,iter =1000,weights.arg = 'equal',truncated.arg = list(lower=0.25,upper=0.75))                                                                                          
 {
   ### output ####
   nw <- length(weights.arg)
   
   prmse.ls <- list()
+  truncated.ls <- list()
   
   lam.track <- matrix(0,nrep,2)
   mat <- matrix(0,nrep,7)
@@ -35,7 +44,13 @@ link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
     prmse.ls[[w]] <- mat
   }
   
+  for(w in 1:3)
+  {
+    truncated.ls[[w]] <- mat
+  }
+  
   names(prmse.ls) <- weights.arg
+  names(truncated.ls) <- c("greater","less","both")
   
   #### gradient ####
   grv.n1 <- matrix(0,nrep,nb+1)
@@ -166,6 +181,8 @@ link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
       weights[,w] <- weights.fun(weights.arg[w],data = newdata[,1])
     }
     
+    truncated.mat <- matrix(c(truncated.arg$upper,1,0,truncated.arg$lower,truncated.arg$lower,truncated.arg$upper),nrow=3,byrow=TRUE)
+    
     #### ----------------------------predict for new data ------------------------------####
     logit.pred <- predict(logit.fit,newdata = as.data.frame(newdata),type = 'response')
     probit.pred <- predict(probit.fit,newdata = as.data.frame(newdata),type = 'response')
@@ -199,6 +216,19 @@ link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
       
     } 
     
+    for(w in 1:3)
+    {
+      truncated.prob <- truncate.fun(prob.new,truncated.mat[w,])
+      truncated.ls[[w]][j,"logit"] <- mean(abs(truncate.fun(logit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"probit"] <- mean(abs(truncate.fun(probit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"robit"] <- mean(abs(truncate.fun(robit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"gev"] <- mean(abs(truncate.fun(gev.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"splogit"] <- mean(abs(truncate.fun(splogit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"pspline(wm)"] <- mean(abs(truncate.fun(pspline.pred.wm,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"pspline(m)"] <- mean(abs(truncate.fun(pspline.pred.m,truncated.mat[w,])- truncated.prob))
+      
+    }
+    
     lam.track[j,] <- c(lam.wm,lam.m)
     print(j)
   }
@@ -206,6 +236,7 @@ link.compare.n5<- function(model,s0=0,ns,nrep,muv = 0,sdv =1,case=2,model.args =
   
   
   outls <- list(rmse.mat = rmse.mat,prmse.ls=prmse.ls, 
+                truncated.ls = truncated.ls,
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1,lam.track=lam.track)
   return(outls)
 }

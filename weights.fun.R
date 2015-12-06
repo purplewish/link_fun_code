@@ -25,5 +25,11 @@ weights.fun <- function(arg,data)
     weights <- weights/sum(weights)
   }
   
+  if(arg == "data")
+  {
+    weights <- dnorm(data,mean=-0.5)
+    weights <- weights/sum(weights)
+  }
+  
   return(weights)
 }

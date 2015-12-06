@@ -4,7 +4,7 @@
 library(splines)
 library(quadprog)
 library(MASS)
-psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol = 1e-4,boundary,MaxIter=1000)
+psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol = 1e-8,boundary,MaxIter=1000)
 {
   bs.nc <- nknots+deg-1
   beta.old <- 1
@@ -196,9 +196,9 @@ pspline.gcv50 <- function(y0,x0,deg = 3,nknots,monotone=TRUE,delta0,tol = 1e-4,b
     traceHW <- sum(wt*diag(Hmat))
     
     #gcv <- mean((y0 - bs.mu)^2)/(1-traceH/length(y0))^2
-    #gcv <- -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))/(1-traceH/length(y0))^2
+    gcv <- -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))/(1-traceH/length(y0))^2
     #gcv <- -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + 2*traceH/(length(y0)-traceH)*sum((y0-bs.mu)^2/(bs.mu*(1-bs.mu)))
-     gcv = -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + traceH/(length(y0)-traceHW)*sum(y0*(y0-bs.mu))
+     #gcv = -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + traceH/(length(y0)-traceHW)*sum(y0*(y0-bs.mu))
     indicator <- 1*(j==MaxIter)
     return(c(gcv,indicator))
   }

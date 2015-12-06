@@ -4,10 +4,12 @@ row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(
               'gev(-0.5)',"gev(-1)",'splogit(0.6)','splogit(1.5)')
 
 weight.arg <- c("equal","both","left","right") 
-pathn1_case1 <- 'output/new/output100_nonlinear_case1.RData' 
-pathn2_case1 <- 'output/new/output200_nonlinear_case1.RData' 
-pathn3_case1 <- 'output/new/output500_nonlinear_case1.RData'
-resn100_case1 <- output.fun(path = pathn1_case1,weight.arg = weight.arg,row.name = row.name) 
+truncated.arg <- c("greater","less","both")
+pathn1_case1 <- 'output/deviance_gcv/output100_nonlinear_case1_all.RData' 
+pathn2_case1 <- 'output/deviance_gcv/output200_nonlinear_case1_all.RData' 
+pathn3_case1 <- 'output/deviance_gcv/output500_nonlinear_case1_all.RData'
+resn100_case1 <- output.fun(path = pathn1_case1,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.name) 
 # resn200_case1 <- output.fun(path = pathn2_case2,weight.arg = weight.arg,row.name = row.name) 
 # resn500_case1 <- output.fun(path = pathn3_case2,weight.arg = weight.arg,row.name = row.name)
 
@@ -16,15 +18,15 @@ print(xtable(t(apply(resn100_case1$ratio.ls$equal,1,create.bf)),caption = "sampl
 
 print(xtable(t(apply(resn100_case1$ratio.ls$both,1,create.bf)),
              caption = "sample size is 100 for weighted RMSE of case 1 (1)",
-             label = 'case1_100'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
+             label = 'case1_100_1'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
 
-print(xtable(t(apply(resn100_case1$ratio.ls$left,1,create.bf)),
+print(xtable(t(apply(resn100_case1$ratio.ls$data,1,create.bf)),
              caption = "sample size is 100 for weighted RMSE of case 1 (2)",
-             label = 'case1_100'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
+             label = 'case1_100_2'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
 
-print(xtable(t(apply(resn100_case1$ratio.ls$right,1,create.bf)),
+print(xtable(t(apply(resn100_case1$ratio.ls$greater,1,create.bf)),
              caption = "sample size is 100 for weighted RMSE of case 1 (3)",
-             label = 'case1_100'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
+             label = 'case1_100_3'),caption.placement='top',table.placement = 'H', sanitize.text.function = function(x) x)
 
 
 ######## plot ######

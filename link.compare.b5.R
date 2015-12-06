@@ -20,16 +20,22 @@ source('link_fun_code/weights.fun.R')
 ## bound*sd 
 ### weights.arg is a vector to specify what kinds of weights are given in the prediction. it can be "equal",'both','left','right'
 
-
-link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,qv=0.95),lamv=seq(5,50,length.out = 20),iter=2000)                             
+ntruncated <- 3
+truncate.fun<- function(x,cutoff.value)
+{
+  xt <- unlist(lapply(unlist(lapply(x,function(x) max(x,cutoff.value[1]))),function(x) min(x,cutoff.value[2])))
+  return(xt)
+}
+link.compare.b5<- function(model,s0=0,ns,nrep,muv=-0.5,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,qv=0.95),lamv=seq(5,50,length.out = 20),truncated.arg = list(lower=0.25,upper=0.75),iter=2000)                             
 {
   ### output ####
   nw <- length(weights.arg)
-  
+
   prmse.ls <- list()
+  truncated.ls <- list()
   
-  mat <- matrix(0,nrep,7)
-  colnames(mat)<- c('logit','probit','robit','gev','splogit','pspline','gam')
+  mat <- matrix(0,nrep,8)
+  colnames(mat)<- c('logit','probit','robit','gev','splogit','pspline(wm)','pspline(m)','gam')
   rmse.mat <- mat
   
   for(w in 1:nw)
@@ -37,8 +43,13 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     prmse.ls[[w]] <- mat
   }
   
-  names(prmse.ls) <- weights.arg
+  for(w in 1:3)
+  {
+    truncated.ls[[w]] <- mat
+  }
   
+  names(prmse.ls) <- weights.arg
+  names(truncated.ls) <- c("greater","less","both")
   
   betav <- model.args$beta0
   nb <- length(betav)
@@ -47,7 +58,7 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
   grv.n1 <- matrix(0,nrep,nb+1)
   splogit.rv.n1 <- matrix(0,nrep,nb)
   boundary.n1 <- rep(0,nrep)
-  lam.track <- rep(0,nrep)
+  lam.track <- matrix(0,nrep,2)
   
   
   if(is.null(bound)==FALSE)
@@ -144,10 +155,17 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     splogit.fit <- splogit.mle(y0 = y0,x0 = xmat0,par0 = init,intervalr = init.args$intervalr)
     
     qv <- spline.control$qv
-    lam<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
-   # lam<- pspline.aic5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
+    lam.m<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
+
     
-    pspline.fit <- psplinelink5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam,MaxIter = iter)
+    pspline.fit.m <- psplinelink5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = TRUE,nknots = nknots,beta0 = c(1,1),lambda=lam.m,MaxIter = iter)
+    
+    lam.wm<- pspline.gcv5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = FALSE,nknots = nknots,beta0 = c(1,1),MaxIter = iter,lamv = lamv)
+    
+    
+    pspline.fit.wm <- psplinelink5(y0 = y0,xmat = xmat0,qv=qv,catv = 'x2',monotone = FALSE,nknots = nknots,beta0 = c(1,1),lambda=lam.wm,MaxIter = iter)
+    
+    
     
     gam.fit<- gam(y0~s(x1)+x2,family = binomial(link = 'logit'))
     
@@ -166,13 +184,18 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
       weights[,w] <- weights.fun(weights.arg[w],data = newdata[,1])
     }
     
+    truncated.mat <- matrix(c(truncated.arg$upper,1,0,truncated.arg$lower,truncated.arg$lower,truncated.arg$upper),nrow=3,byrow=TRUE)
+    
+
+    
     #### ----------------------------predict for new data ------------------------------####
     logit.pred <- predict(logit.fit,newdata = as.data.frame(newdata),type = 'response')
     probit.pred <- predict(probit.fit,newdata = as.data.frame(newdata),type = 'response')
     robit.pred <- predict.pxem(est.obj = robit.fit,newdata = newdata)
     gev.pred <- predict.gev.new(est.obj = gev.fit,newdata = newdata)
     splogit.pred <- predict.splogit(est.obj = splogit.fit,newdata = newdata)
-    pspline.pred <- predict.pspline5(est.obj = pspline.fit,newdata = newdata)
+    pspline.pred.m <- predict.pspline5(est.obj = pspline.fit.m,newdata = newdata)
+    pspline.pred.wm <- predict.pspline5(est.obj = pspline.fit.wm,newdata = newdata)
     gam.pred <- predict(gam.fit,newdata = as.data.frame(newdata),type = 'response')
     
     
@@ -181,7 +204,8 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
     rmse.mat[j,'robit'] <- sqrt(mean((robit.fit$fitted.values - prob0)^2))
     rmse.mat[j,'gev'] <- sqrt(mean((gev.fit$fitted.values - prob0)^2))
     rmse.mat[j,'splogit'] <- sqrt(mean((splogit.fit$fitted.values - prob0)^2))
-    rmse.mat[j,'pspline']<- sqrt(mean((pspline.fit$fitted.values - prob0)^2))
+    rmse.mat[j,"pspline(wm)"] <- sqrt(mean((pspline.fit.wm$fitted.values - prob0)^2))
+    rmse.mat[j,'pspline(m)']<- sqrt(mean((pspline.fit.m$fitted.values - prob0)^2))
     rmse.mat[j,'gam'] <- sqrt(mean((gam.fit$fitted.values - prob0)^2))
     
     
@@ -192,17 +216,33 @@ link.compare.b5<- function(model,s0=0,ns,nrep,muv=0,sdv =1,bound=3,len.newx=200,
       prmse.ls[[w]][j,'robit'] <- sqrt(sum(weights[,w]*(robit.pred- prob.new)^2))
       prmse.ls[[w]][j,'gev'] <- sqrt(sum(weights[,w]*(gev.pred - prob.new)^2))
       prmse.ls[[w]][j,'splogit'] <- sqrt(sum(weights[,w]*(splogit.pred - prob.new)^2))
-      prmse.ls[[w]][j,'pspline'] <- sqrt(sum(weights[,w]*(pspline.pred - prob.new)^2))
+      prmse.ls[[w]][j,'pspline(wm)'] <- sqrt(sum(weights[,w]*(pspline.pred.wm - prob.new)^2))
+      prmse.ls[[w]][j,'pspline(m)'] <- sqrt(sum(weights[,w]*(pspline.pred.m - prob.new)^2))
       prmse.ls[[w]][j,'gam'] <- sqrt(sum(weights[,w]*(as.numeric(gam.pred) - prob.new)^2))
       
     } 
+    
+    for(w in 1:3)
+    {
+      truncated.prob <- truncate.fun(prob.new,truncated.mat[w,])
+      truncated.ls[[w]][j,"logit"] <- mean(abs(truncate.fun(logit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"probit"] <- mean(abs(truncate.fun(probit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"robit"] <- mean(abs(truncate.fun(robit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"gev"] <- mean(abs(truncate.fun(gev.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"splogit"] <- mean(abs(truncate.fun(splogit.pred,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"pspline(wm)"] <- mean(abs(truncate.fun(pspline.pred.wm,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"pspline(m)"] <- mean(abs(truncate.fun(pspline.pred.m,truncated.mat[w,])- truncated.prob))
+      truncated.ls[[w]][j,"gam"] <- mean(abs(truncate.fun(gam.pred,truncated.mat[w,])- truncated.prob))
+      
+    }
    
-    lam.track[j] <- lam
+    lam.track[j,] <- c(lam.m,lam.wm)
     print(j)
   }
   
   outls <- list(rmse.mat = rmse.mat, 
                 prmse.ls=prmse.ls,
+                truncated.ls = truncated.ls,
                 gr = grv.n1, boundary = boundary.n1,splogit.rv = splogit.rv.n1,lam.track=lam.track)
   return(outls)
 }
