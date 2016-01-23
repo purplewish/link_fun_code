@@ -39,7 +39,7 @@ save(out.logit,out.probit,out.robit3,out.robit1,out.robit2,out.gev1,out.gev2,out
 ########  case 2######
 ## nonlinear like linear -0.2(x-3)^2+4
 source('link_fun_code/link.compare.n5.R')
-ns0 <- 100
+ns0 <- 500
 nrep0 <- 100
 
 out.logit <- link.compare.n5(model = 'logit',ns = ns0,s0=0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.1,10)),bound = 3,lamv=10^(seq(-5,12,length.out = 100)),weights.arg=c('equal','both','left','right',"data"))
@@ -66,7 +66,7 @@ out.splogit.06<- link.compare.n5(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep =
 out.splogit.15<- link.compare.n5(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=1.5),init.args = list(init = c(0.1,0.2),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.2,10)),bound=3,lamv=10^(seq(-5,12,length.out = 100)),weights.arg=c('equal','both','left','right',"data"))
 
 
-save(out.logit,out.probit,out.robit3,out.robit1,out.robit2,out.gev1,out.gev2,out.gev3,out.gev4,out.splogit.06,out.splogit.15,file='output/deviance_gcv/output100_nonlinear_case2_all.RData')
+save(out.logit,out.probit,out.robit3,out.robit1,out.robit2,out.gev1,out.gev2,out.gev3,out.gev4,out.splogit.06,out.splogit.15,file='output/deviance_gcv/output500_nonlinear_case2_all.RData')
 
 
 
@@ -104,7 +104,7 @@ save(out.logit,out.probit,out.robit3,out.robit1,out.robit2,out.gev1,out.gev2,out
 
 ########### case 1 #################
 source('link_fun_code/link.compare.n5.R')
-ns0 <- 200 
+ns0 <- 500 
 nrep0 <- 100
 
 out.logit <- link.compare.n5(model = 'logit',ns = ns0,s0=0,nrep = nrep0,muv =-0.5,init.args = list(init = c(0,0),xi0=1,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.3,10)),bound = 3,lamv=10^(seq(-5,10,length.out = 50)),weights.arg=c('equal','both','left','right',"data"),case=1)
@@ -132,7 +132,7 @@ out.splogit.06<- link.compare.n5(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep =
 out.splogit.15<- link.compare.n5(model = 'splogit',s0=0,ns = ns0,muv=-0.5,nrep = nrep0,model.args = list(r=1.5),init.args = list(init = c(0,0),xi0=-0.5,nu0=2,r0=1,intervalr=c(0.03,10),interval.nu=c(0.5,10)),bound=3,lamv=10^(seq(-5,10,length.out = 50)),weights.arg=c('equal','both','left','right',"data"),case=1)
 
 
-save(out.logit,out.probit,out.robit1,out.robit2,out.robit3,out.gev1,out.gev2,out.gev3,out.gev4,out.splogit.06,out.splogit.15,file='output/deviance_gcv/output200_nonlinear_case1.RData')
+save(out.logit,out.probit,out.robit1,out.robit2,out.robit3,out.gev1,out.gev2,out.gev3,out.gev4,out.splogit.06,out.splogit.15,file='output/deviance_gcv/output500_nonlinear_case1_all.RData')
 
 
 

@@ -1,4 +1,5 @@
 ###### consider splogit and gev #### distribution ####
+setwd("/Users/Xin/Research/link_function/")
 library(ggplot2)
 library(gridExtra)
 ###gev ###
@@ -76,7 +77,7 @@ r.fun.skew <- function(r,xi)
   
   if(r >1)
   {
-    value<- *(1/(r+1))^(1/r)- exp(-(1+xi))
+    value<- r*(1/(r+1))^(1/r)- exp(-(1+xi))
   }
   return(value)
 }
@@ -104,3 +105,57 @@ c2 <- ggplot(data.frame(x=c(-7, 7)), aes(x)) +
   theme(legend.text.align=0)
 grid.arrange(c1,c2,ncol=2)
 dev.off()
+
+
+
+###### symmetric link #####
+pdf("document/figures/symmetric_link.pdf",width = 6,height = 4)
+label.sym <- c('logit',"probit",expression(paste(nu,'=',1,sep=' ')),expression(paste(nu,'=',2,sep=' ')))
+ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
+  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(color='logit'))+
+  stat_function(fun = function(x) pnorm(x,0,1),aes(color="probit"))+
+  stat_function(fun = function(x) pt(x,df = 1),aes(color = "t1"))+
+  stat_function(fun = function(x) pt(x,df = 2),aes(color = "t2"))+
+  scale_colour_manual(name='link',values=c('logit'='black','probit'="blue",'t1'="green",'t2'='red'),labels= label.sym,breaks=c('logit','probit','t1','t2'))+theme_bw()+theme(legend.text.align=0)
+dev.off()
+
+
+pdf("document/figures/asymmetric_link.pdf",width = 6,height = 4)
+label.asym <- c(paste('r','=',0.2,sep=' '),paste('r','=',5,sep=''),expression(paste(xi,'=',-0.5,sep=' ')),expression(paste(xi,'=',0.5,sep=' ')))
+ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
+  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(color='logit'))+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 0.2), aes(color='splogit1'))+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 5), aes(color='splogit2'))+
+  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = -0.5), aes(color='gev1' ))+
+  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = 0.5), aes(color='gev2' ))+
+  scale_colour_manual(name='link',values=c('logit'='black','splogit1'="blue",'splogit2'='green','gev1'='red','gev2'='orange'),labels=c('logit',label.asym),breaks=c('logit',paste('splogit',1:2,sep=''),paste("gev",1:2,sep="")))+theme_bw()+theme(legend.text.align=0)
+dev.off()
+
+
+
+##### curve ####
+
+f1 <- function(x1)
+{
+  x1^2+x1-3
+}
+
+f2 <- function(x1)
+{
+  -0.2*(x1-3)^2-0.15*x1+3
+}
+
+f3 <- function(x1)
+{
+  0.2*(x1+1)^3-2
+}
+
+
+pdf("document/figures/curve.pdf",width = 6,height = 4)
+ggplot(data.frame(x=c(-3, 3)), aes(x)) + 
+  stat_function(fun = f1,aes(color='curve1'))+
+  stat_function(fun = f2,aes(color='curve2'))+
+  stat_function(fun = f3,aes(color='curve3'))+
+  scale_colour_manual(name='curve',values=c('curve1'='black','curve2'="blue",'curve3'='green'),labels=c("curve1","curve2","curve3"),breaks=c("curve1","curve2","curve3"))+theme_bw()+theme(legend.text.align=0)
+dev.off()
+

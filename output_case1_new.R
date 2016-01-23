@@ -5,9 +5,9 @@ row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(
 
 weight.arg <- c("equal","both","left","right") 
 truncated.arg <- c("greater","less","both")
-pathn1_case1 <- 'output/deviance_gcv/output100_nonlinear_case1_all.RData' 
-pathn2_case1 <- 'output/deviance_gcv/output200_nonlinear_case1_all.RData' 
-pathn3_case1 <- 'output/deviance_gcv/output500_nonlinear_case1_all.RData'
+pathn1_case1 <- 'output/deviance_gcv/output100_nonlinear_case1.RData' 
+pathn2_case1 <- 'output/deviance_gcv/output200_nonlinear_case1.RData' 
+pathn3_case1 <- 'output/deviance_gcv/output500_nonlinear_case1.RData'
 resn100_case1 <- output.fun(path = pathn1_case1,weight.arg = weight.arg,
                             truncated.arg = truncated.arg,row.name = row.name) 
 # resn200_case1 <- output.fun(path = pathn2_case2,weight.arg = weight.arg,row.name = row.name) 

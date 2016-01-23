@@ -60,15 +60,17 @@ error.pspline.m <- test.error(test.dat$kwit,1*(pspline.pred.m>=0.5))
 error.pspline.wm <- test.error(test.dat$kwit,1*(pspline.pred.wm>=0.5))
 error.gam <- test.error(test.dat$kwit,1*(gam.pred>=0.5))
 
-dfp <- cbind(xmat0,logit.fit$fitted.value,probit.fit$fitted.values,robit.fit$fitted.values,gev.fit$fitted.values,splogit.fit$fitted.values,pspline.fit$fitted.values,gam.fit$fitted.values)
+c(error.logit,error.probit,error.robit,error.gev ,error.splogit,error.pspline.wm,error.pspline.m ,error.gam)
 
-colnames(dfp) <- c('sex','dex','logit','probit','robit','GEV','splogit','pspline_m','pspline_wom','gam')
+dfp <- cbind(xmat0,logit.fit$fitted.value,probit.fit$fitted.values,robit.fit$fitted.values,gev.fit$fitted.values,splogit.fit$fitted.values,pspline.fit.wm$fitted.values,pspline.fit.m$fitted.values,gam.fit$fitted.values)
+
+colnames(dfp) <- c('sex','dex','logit','probit','robit','GEV','splogit','pspline_wm','pspline_m','gam')
 library(reshape2)
 df.melt <- melt(dfp,value.name = 'prob',id.vars = c('sex','dex'),variable.name = 'link')
 df.melt$link <- as.factor(df.melt$link)
 library(ggplot2)
 
-# ggplot(df.melt,aes(x=dex,y=prob,linetype=link,color=link))+geom_line()+facet_wrap(~sex)+theme_bw()+theme(strip.background = element_rect(fill='white'))
+ ggplot(subset(df.melt,link%in%c("logit","robit","pspline_m")),aes(x=dex,y=prob,linetype=link,color=link))+geom_line()+facet_wrap(~sex)+theme_bw()+theme(strip.background = element_rect(fill='white'))
 
 
 nll <- function(fitted.values,y0)

@@ -4,6 +4,7 @@
 library(actuar)
 library(splines)
 library(MASS)
+library(quadprog)
 ## qv is value of quantile value of qv ####
 # cat is the name of categorical data ###
 

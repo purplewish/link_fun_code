@@ -2,7 +2,7 @@ setwd("/Users/Xin/Research/link_function/")
 source("/Users/Xin/Research/link_function/link_fun_code/lyxout.R") 
 row.name <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)',
               'gev(-0.5)',"gev(-1)",'splogit(0.2)','splogit(5)')
-shortname <- c("L","P","R","G","S","PM","A")
+shortname <- c("L","P","R","G","S","PW","PM","A")
 row.namenon <- c('logit','probit','robit(0.6)','robit(1)','robit(2)','gev(1)','gev(0.5)',
               'gev(-0.5)',"gev(-1)",'splogit(0.6)','splogit(1.5)')
 shortnamenon <- c("L","P","R","G","S","PW","PM")
