@@ -9,9 +9,9 @@ shortnamenon <- c("L","P","R","G","S","PW","PM")
 
 weight.arg <- c("equal","both","left","right","data")
 truncated.arg <- c("greater","less","both")
-pathn1 <- 'output/deviance_gcv/output100_binary_all.RData' 
-pathn2 <- 'output/deviance_gcv/output200_binary_all.RData' 
-pathn3 <- 'output/deviance_gcv/output500_binary_all.RData'
+pathn1 <- 'output/deviance_gcv/new/output100_binary_all.RData' 
+pathn2 <- 'output/deviance_gcv/new/output200_binary_all.RData' 
+pathn3 <- 'output/deviance_gcv/new/output500_binary_all.RData'
 resn100 <- output.fun(path = pathn1,weight.arg = weight.arg,
                       truncated.arg = truncated.arg,row.name = row.name) 
 resn200 <- output.fun(path = pathn2,weight.arg = weight.arg,
@@ -47,4 +47,49 @@ rownames(tab.final100) <-  rownames(tab.final200) <- rownames(tab.final500) <-ro
 print(xtable(tab.final100))
 print(xtable(tab.final200))
 print(xtable(tab.final500))
+
+
+
+#### nonlinear case 1 and case 2
+
+pathn1_case1 <- 'output/deviance_gcv/output100_nonlinear_case1_all.RData' 
+pathn2_case1 <- 'output/deviance_gcv/output200_nonlinear_case1_all.RData' 
+pathn3_case1 <- 'output/deviance_gcv/output500_nonlinear_case1_all.RData'
+
+resn100_case1 <- output.fun(path = pathn1_case1,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon) 
+resn200_case1 <- output.fun(path = pathn2_case1,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon) 
+resn500_case1 <- output.fun(path = pathn3_case1,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon)
+
+pathn1_case2 <- 'output/deviance_gcv/output100_nonlinear_case2_all.RData' 
+pathn2_case2 <- 'output/deviance_gcv/output200_nonlinear_case2_all.RData' 
+pathn3_case2 <- 'output/deviance_gcv/output500_nonlinear_case2_all.RData'
+
+resn100_case2 <- output.fun(path = pathn1_case2,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon) 
+resn200_case2 <- output.fun(path = pathn2_case2,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon) 
+resn500_case2 <- output.fun(path = pathn3_case2,weight.arg = weight.arg,
+                            truncated.arg = truncated.arg,row.name = row.namenon)
+
+tab.final100non <- tab.final200non <- tab.final500non <-  data.frame(matrix(0,11,6))
+weightuse <- c("equal","data","greater")
+for(j in 1:3)
+{
+  tab.final100non[,j] <- first.three(resn100_case1$ratio.ls[[weightuse[j]]],shortnamenon)
+  tab.final100non[,j+3] <- first.three(resn100_case2$ratio.ls[[weightuse[j]]],shortnamenon)
+  
+  tab.final200non[,j] <- first.three(resn200_case1$ratio.ls[[weightuse[j]]],shortnamenon)
+  tab.final200non[,j+3] <- first.three(resn200_case2$ratio.ls[[weightuse[j]]],shortnamenon)
+  
+  tab.final500non[,j] <- first.three(resn500_case1$ratio.ls[[weightuse[j]]],shortnamenon)
+  tab.final500non[,j+3] <- first.three(resn500_case2$ratio.ls[[weightuse[j]]],shortnamenon)
+}
+
+rownames(tab.final100non) <-  rownames(tab.final200non) <- rownames(tab.final500non) <-row.name
+print(xtable(tab.final100non))
+print(xtable(tab.final200non))
+print(xtable(tab.final500non))
 

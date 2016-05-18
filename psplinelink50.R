@@ -4,7 +4,8 @@
 library(splines)
 library(quadprog)
 library(MASS)
-psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol = 1e-8,boundary,MaxIter=1000)
+psplinelink50 <- function(y0,x0,deg = 3,lambda,signvalue =1,
+                          nknots,monotone=FALSE,delta0,tol = 1e-8,boundary,MaxIter=1000)
 {
   bs.nc <- nknots+deg-1
   beta.old <- 1
@@ -51,7 +52,6 @@ psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol 
       
     }
     
-    
   }
   
   if(monotone==TRUE)
@@ -59,6 +59,8 @@ psplinelink50 <- function(y0,x0,deg = 3,lambda,nknots,monotone=FALSE,delta0,tol 
     Dmat <- matrix(0,ncol=bs.nc,nrow=bs.nc-1) ### monotone
     diag(Dmat) <- -1
     Dmat[cbind(1:(bs.nc-1),2:bs.nc)] <- 1
+    
+    Dmat <- signvalue * Dmat
     
     Dmat1 <- matrix(0,ncol = bs.nc, nrow = bs.nc -2)
     Dmat1[cbind(1:(bs.nc-2),1:(bs.nc-2))] <- 1

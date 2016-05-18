@@ -158,7 +158,13 @@ psplinelink5<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
     nll.old <- nll.fun(beta.old)
     for(k in 1:Maxk){
       beta.cand <- beta.old + tvalue*Delta.x
-      beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+      if(!monotone)
+      {
+        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+      }
+      else{
+        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
+      }
       nll.value <- nll.fun(beta.cand) 
       if(nll.value < nll.old + alpha0*tvalue*t(deriv.first)%*%Delta.x){break}
       tvalue <- tvalue*gamma0
@@ -178,7 +184,6 @@ psplinelink5<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
     delta.old <- delta.update
     
   }
-  
   
   eta <- xmats%*%beta.update
   q.value <- (eta/atu+1)/2
@@ -230,7 +235,6 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
       q.old <- (eta.old/atu+1)/2
       Ut <- pgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
       bs.old <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
-      
       
       if(!monotone)
       {
@@ -347,7 +351,15 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
       nll.old <- nll.fun(beta.old)
       for(k in 1:Maxk){
         beta.cand <- beta.old + tvalue*Delta.x
-        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+        beta.cand <- beta.old + tvalue*Delta.x
+        if(!monotone)
+        {
+          beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+        }
+        else{
+          beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
+        }
+  
         nll.value <- nll.fun(beta.cand) 
         if(nll.value < nll.old + alpha0*tvalue*t(deriv.first)%*%Delta.x){break}
         tvalue <- tvalue*gamma0

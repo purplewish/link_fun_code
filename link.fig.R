@@ -2,6 +2,7 @@
 setwd("/Users/Xin/Research/link_function/")
 library(ggplot2)
 library(gridExtra)
+library(evd)
 ###gev ###
 pdf('document/figures/comparison/gevlink.pdf',width = 8,height = 6)
 label.gev <- c('logit',expression(paste(xi,'=',-1,sep=' ')),expression(paste(xi,'=',-0.3,sep=' ')),expression(paste(xi,'=',1,sep=' ')))
@@ -116,7 +117,7 @@ ggplot(data.frame(x=c(-7, 7)), aes(x)) +
   stat_function(fun = function(x) pnorm(x,0,1),aes(color="probit"))+
   stat_function(fun = function(x) pt(x,df = 1),aes(color = "t1"))+
   stat_function(fun = function(x) pt(x,df = 2),aes(color = "t2"))+
-  scale_colour_manual(name='link',values=c('logit'='black','probit'="blue",'t1'="green",'t2'='red'),labels= label.sym,breaks=c('logit','probit','t1','t2'))+theme_bw()+theme(legend.text.align=0)
+  scale_colour_manual(name='link',values=c('logit'='black','probit'="blue",'t1'="green",'t2'='red'),labels= label.sym,breaks=c('logit','probit','t1','t2'))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
 dev.off()
 
 
@@ -128,7 +129,7 @@ ggplot(data.frame(x=c(-7, 7)), aes(x)) +
   stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 5), aes(color='splogit2'))+
   stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = -0.5), aes(color='gev1' ))+
   stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = 0.5), aes(color='gev2' ))+
-  scale_colour_manual(name='link',values=c('logit'='black','splogit1'="blue",'splogit2'='green','gev1'='red','gev2'='orange'),labels=c('logit',label.asym),breaks=c('logit',paste('splogit',1:2,sep=''),paste("gev",1:2,sep="")))+theme_bw()+theme(legend.text.align=0)
+  scale_colour_manual(name='link',values=c('logit'='black','splogit1'="blue",'splogit2'='green','gev1'='red','gev2'='orange'),labels=c('logit',label.asym),breaks=c('logit',paste('splogit',1:2,sep=''),paste("gev",1:2,sep="")))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
 dev.off()
 
 
@@ -153,9 +154,9 @@ f3 <- function(x1)
 
 pdf("document/figures/curve.pdf",width = 6,height = 4)
 ggplot(data.frame(x=c(-3, 3)), aes(x)) + 
-  stat_function(fun = f1,aes(color='curve1'))+
-  stat_function(fun = f2,aes(color='curve2'))+
-  stat_function(fun = f3,aes(color='curve3'))+
-  scale_colour_manual(name='curve',values=c('curve1'='black','curve2'="blue",'curve3'='green'),labels=c("curve1","curve2","curve3"),breaks=c("curve1","curve2","curve3"))+theme_bw()+theme(legend.text.align=0)
+  stat_function(fun = f1,aes(color='case1'))+
+  stat_function(fun = f2,aes(color='case2'))+
+  stat_function(fun = f3,aes(color='case3'))+
+  scale_colour_manual(name='case',values=c('case1'='black','case2'="blue",'case3'='green'),labels=c("case1","case2","case3"),breaks=c("case1","case2","case3"))+theme_bw()+theme(legend.text.align=0)+ylab(expression(eta))
 dev.off()
 
