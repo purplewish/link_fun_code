@@ -100,13 +100,21 @@ psplinelink3<- function(y0,xmat,size=1,qv=1,deg = 3,kp = 1e6,nknots=10,
        beta.update <- solve(t(wt.beta*xmats)%*%xmats)%*%t(wt.beta*xmats)%*%z.beta
 #       cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
 #       beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
-      if(beta.update[1] >0){
-        beta.update <- beta.update/sqrt(sum(beta.update^2))
-      }
-     if(beta.update[1]<0)
-     {
-       beta.update <- -beta.update/sqrt(sum(beta.update^2))
-     }
+     #  if(beta.update[1] >0){
+     #    beta.update <- beta.update/sqrt(sum(beta.update^2))
+     #  }
+     # if(beta.update[1]<0)
+     # {
+     #   beta.update <- -beta.update/sqrt(sum(beta.update^2))
+     # }
+       
+       if(!monotone)
+       {
+         beta.update <- beta.update/sqrt(sum(beta.update^2))*sign(beta.update[1])
+       }
+       else{
+         beta.update <- beta.update/sqrt(sum(beta.update^2))
+       }
     
      diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
      if(diff.total<= tol){break} 
@@ -200,8 +208,7 @@ pspline.gcv3 <- function(y0,xmat,size=1,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
         
       }
       
-      ### update beta ####                                                                                                                                                                                                                                                                                                                                                                                                                                          
-      
+      ### update beta ####                                                              
       #       eta.old<- xmats%*%beta.old
       eta.stand <- eta.old
       #       q.old <- (eta.stand/atu+1)/2
@@ -218,12 +225,20 @@ pspline.gcv3 <- function(y0,xmat,size=1,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
       beta.update <- solve(t(wt.beta*xmats)%*%xmats)%*%t(wt.beta*xmats)%*%z.beta
       #       cz.beta <- chol(t(xmats)%*%wt.beta%*%xmats)
       #       beta.update <- chol2inv(cz.beta)%*%t(xmats)%*%wt.beta%*%z.beta
-      if(beta.update[1] >0){
-        beta.update <- beta.update/sqrt(sum(beta.update^2))
-      }
-      if(beta.update[1]<0)
+      # if(beta.update[1] >0){
+      #   beta.update <- beta.update/sqrt(sum(beta.update^2))
+      # }
+      # if(beta.update[1]<0)
+      # {
+      #   beta.update <- -beta.update/sqrt(sum(beta.update^2))
+      # }
+      
+      if(!monotone)
       {
-        beta.update <- -beta.update/sqrt(sum(beta.update^2))
+        beta.update <- beta.update/sqrt(sum(beta.update^2))*sign(beta.update[1])
+      }
+      else{
+        beta.update <- beta.update/sqrt(sum(beta.update^2))
       }
       
       diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
@@ -237,6 +252,7 @@ pspline.gcv3 <- function(y0,xmat,size=1,qv=1,deg = 3,nknots=5,kp=1e6,catv=NULL,
     eta <- xmats%*%beta.update
     fitted.values <- muhat
     gcv <- mean((y0 - size*muhat)^2)/(1-traceH/length(y0))^2
+
     return(gcv)
   }
   

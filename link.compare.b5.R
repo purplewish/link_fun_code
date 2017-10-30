@@ -26,7 +26,7 @@ truncate.fun<- function(x,cutoff.value)
   xt <- unlist(lapply(unlist(lapply(x,function(x) max(x,cutoff.value[1]))),function(x) min(x,cutoff.value[2])))
   return(xt)
 }
-link.compare.b5<- function(model,s0=0,ns,nrep,muv=-0.5,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 10,qv=0.95),lamv=seq(5,50,length.out = 20),truncated.arg = list(lower=0.25,upper=0.75),iter=2000)                             
+link.compare.b5<- function(model,s0=0,ns,nrep,muv=-0.5,sdv =1,bound=3,len.newx=200,weights.arg='equal',model.args=list(beta0=c(0,1,1)),init.args=list(init=c(0,0,0),xi0 =1,r0=1,nu0=1,intervalr=c(0.03,10)), spline.control = list(deg = 3,nknots = 11,qv=0.95),lamv=seq(5,50,length.out = 20),truncated.arg = list(lower=0.25,upper=0.75),iter=2000)                             
 {
   ### output ####
   nw <- length(weights.arg)

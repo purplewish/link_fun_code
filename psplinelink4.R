@@ -4,13 +4,11 @@
 library(actuar)
 library(splines)
 library(MASS)
-## qv is value of quantile value of qv ####
-# cat is the name of categorical data ###
+
 psplinelink4<- function(y0,xmat0,deg = 3,kp = 1e6,nknots=10,
                         monotone=TRUE,beta0,delta0,
                         tol = 1e-8,lambda=20,MaxIter=1000,boundary)
 {
-  
   bs.nc <- nknots+deg-1
   delta0 <- rep(0,bs.nc)
 
@@ -24,7 +22,7 @@ psplinelink4<- function(y0,xmat0,deg = 3,kp = 1e6,nknots=10,
   for(j in 1:MaxIter)
   {
     eta.old <- xmat%*%beta.old
-    eta.std <- as.numeric(scale(eta.old)*sqrt(nr/(nr-1)))
+    eta.std <- as.numeric(scale(eta.old)*sqrt(nr/(nr-1))) ### standardized 
     knots <- seq(min(eta.std),max(eta.std),length.out = nknots)
     bs.old <- bs(eta.std,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = range(eta.std) ,intercept=TRUE)
     
@@ -89,8 +87,8 @@ psplinelink4<- function(y0,xmat0,deg = 3,kp = 1e6,nknots=10,
     du.eta <- muhat*(1-muhat)* fun.deriv
     z.beta <- eta.std +(y0 - muhat)/du.eta
     wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2))
-    beta.update <- solve(t(xmat)%*%wt.beta%*%xmat)%*%t(xmat)%*%wt.beta%*%z.beta
-    
+    index.deriv <- du.eta!=0 & (is.na(diag(wt.beta))==FALSE)
+    beta.update <- solve(t(xmat[index.deriv,])%*%wt.beta[index.deriv,index.deriv]%*%xmat[index.deriv,])%*%t(xmat[index.deriv,])%*%wt.beta[index.deriv,index.deriv]%*%z.beta[index.deriv]
     
     diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
     if(diff.total<= tol){break} 
@@ -200,7 +198,8 @@ pspline.gcv4 <- function(y0,xmat0,deg = 3,nknots=5,kp=1e6,
       du.eta <- muhat*(1-muhat)* fun.deriv
       z.beta <- eta.std +(y0 - muhat)/du.eta
       wt.beta <- diag(as.numeric(muhat*(1-muhat)*fun.deriv^2))
-      beta.update <- solve(t(xmat)%*%wt.beta%*%xmat)%*%t(xmat)%*%wt.beta%*%z.beta
+      index.deriv <- du.eta!=0 & (is.na(diag(wt.beta))==FALSE)
+      beta.update <- solve(t(xmat[index.deriv,])%*%wt.beta[index.deriv,index.deriv]%*%xmat[index.deriv,])%*%t(xmat[index.deriv,])%*%wt.beta[index.deriv,index.deriv]%*%z.beta[index.deriv]
       
       
       diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))

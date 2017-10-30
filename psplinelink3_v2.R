@@ -5,9 +5,9 @@
 library(splines)
 library(MASS)
 library(quadprog)
-library(actuar)
 ## qv is value of quantile value of qv ####
 # cat is the name of categorical data ###
+# when upadting beta, the algorithm does not have alpha gamma
 
 ### if there is false in index, use this function. return the index with numbers, where the flase one is replaced by the close one which can make sure it is increasing.
 index.fun <- function(index)
@@ -24,9 +24,9 @@ index.fun <- function(index)
   indexnew[index] <- 1:(length(indextrue))
   return(indexnew)
 }
-psplinelink5<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
+psplinelink3<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
                         monotone=TRUE,beta0,delta0,catv=NULL,
-                        tol = 1e-8,lambda=20,MaxIter=1000,Maxk=10,backtracking=list(alpha0=0.25, gamma0=0.5))
+                        tol = 1e-8,lambda=20,MaxIter=1000)
 {
   xmats <- scale(xmat) 
   d.value <- ncol(xmat)
@@ -129,52 +129,27 @@ psplinelink5<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
     
     
     ### update beta ####  
-    
-    nll.fun <- function(beta.update)
-    {
-      eta <- xmats%*%beta.update
-      q.value <- (eta/atu+1)/2
-      Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
-      bs0 <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
-      nllv <- -sum(y0*(bs0%*%delta.update))+sum(size*log(1+exp(bs0%*%delta.update)))
-      return(nllv)
-    }
-    
+  
     eta.stand <- eta.old
     muhat <- 1/(1+exp(-bs.old %*% delta.update))
     bs.deriv <- splineDesign(knots= c(rep(0,4),knots[c(-1,-length(knots))],rep(1,4)), Ut, ord = 4, derivs=rep(1,length(y0)),outer.ok=TRUE)
     fun.deriv <- bs.deriv%*% delta.update
     den.value<- dgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1)/(2*atu)
     du.eta <- size*muhat*(1-muhat)* fun.deriv*den.value
-    z.beta <- (y0 - size*muhat)/du.eta
+    z.beta <- eta.stand + (y0 - size*muhat)/du.eta
     wt.beta <- as.numeric(size*muhat*(1-muhat)*fun.deriv^2*den.value^2)
-    index.deriv <- du.eta!=0 & (is.na(wt.beta)==FALSE)
+    beta.cand <- solve(t(wt.beta*xmats)%*%xmats)%*%t(wt.beta*xmats)%*%z.beta
     
-    deriv.first <- t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
-    Delta.x <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%deriv.first
-    
-    tvalue <- 1
-    alpha0 <- backtracking$alpha0
-    gamma0 <- backtracking$gamma0
-    nll.old <- nll.fun(beta.old)
-    for(k in 1:Maxk){
-      beta.cand <- beta.old + tvalue*Delta.x
-      if(!monotone)
-      {
-        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
-      }
-      else{
-        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
-      }
-      nll.value <- nll.fun(beta.cand) 
-      if(nll.value < nll.old + alpha0*tvalue*t(deriv.first)%*%Delta.x){break}
-      tvalue <- tvalue*gamma0
+    if(!monotone)
+    {
+      beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+    }
+    else{
+      beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
     }
     
     beta.update <- beta.cand
     
-    #       beta.update <- beta.old + 0.5*Delta.x
-    #       beta.update <- beta.update/sqrt(sum(beta.update^2))*sign(beta.update[1])
     
     
     diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
@@ -212,8 +187,8 @@ psplinelink5<- function(y0,xmat,qv=1,size=1,deg = 3,nknots=10,
 }
 
 #### pspline using GCV ###
-pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
-                         monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=exp(seq(-5,10,length.out = 50)),MaxIter = 1000,Maxk=10,backtracking=list(alpha0=0.25, gamma0=0.5))
+pspline.gcv3 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
+                         monotone=TRUE,beta0,delta0,tol = 1e-8,lamv=exp(seq(-5,10,length.out = 50)),MaxIter = 1000)
 {  
   xmats <- scale(xmat) 
   xmats[,catv] <- xmat[,catv]
@@ -254,7 +229,7 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
         else{
           delta.update <- ginv(t(wt[index]*bs.old[index,])%*%bs.old[index,]+lambda*t(Dmat1)%*%(Dmat1))%*%t(wt[index]*bs.old[index,])%*%z[index]
         }
-
+        
       }
       
       if(monotone)
@@ -335,43 +310,21 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
       fun.deriv <- bs.deriv%*% delta.update
       den.value<- dgenbeta(q.old,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1)/(2*atu)
       du.eta <- size*muhat*(1-muhat)* fun.deriv*den.value
-      z.beta <- (y0 - size*muhat)/du.eta
+      z.beta <- eta.stand + (y0 - size*muhat)/du.eta
       wt.beta <- as.numeric(size*muhat*(1-muhat)*fun.deriv^2*den.value^2)
-      index.deriv <- du.eta!=0 & (is.na(wt.beta)==FALSE)
-      if(sum(index.deriv) <=1)
-      {return(c(0,1))}
-      else{
-        deriv.first <- t(wt.beta[index.deriv]*xmats[index.deriv,])%*%z.beta[index.deriv]
-        Delta.x <- ginv(t(wt.beta[index.deriv]*xmats[index.deriv,])%*%xmats[index.deriv,])%*%deriv.first
-      }
 
+      beta.cand <- solve(t(wt.beta*xmats)%*%xmats)%*%t(wt.beta*xmats)%*%z.beta
       
-      tvalue <- 1
-      alpha0 <- backtracking$alpha0
-      gamma0 <- backtracking$gamma0
-      nll.old <- nll.fun(beta.old)
-      for(k in 1:Maxk){
-        beta.cand <- beta.old + tvalue*Delta.x
-        beta.cand <- beta.old + tvalue*Delta.x
-        if(!monotone)
-        {
-          beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
-        }
-        else{
-          beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
-        }
-  
-        nll.value <- nll.fun(beta.cand) 
-        if(nll.value < nll.old + alpha0*tvalue*t(deriv.first)%*%Delta.x){break}
-        tvalue <- tvalue*gamma0
+      if(!monotone)
+      {
+        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))*sign(beta.cand[1])
+      }
+      else{
+        beta.cand <- beta.cand/sqrt(sum(beta.cand^2))
       }
       
       beta.update <- beta.cand
-      
-      #       beta.update <- beta.old + 0.5*Delta.x
-      #       beta.update <- beta.update/sqrt(sum(beta.update^2))*sign(beta.update[1])
-      
-      
+
       diff.total<- sqrt(sum((beta.update - beta.old)^2) + sum((delta.update - delta.old)^2))
       
       if(diff.total<= tol)
@@ -401,8 +354,8 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
     
     #gcv <- mean((y0 - fitted.values)^2)/(1-traceH/length(y0))^2
     gcv <- -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu))/(1-traceH/length(y0))^2
-   # gcv = -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + traceH/(length(y0)-traceHW)*sum(y0*(y0-bs.mu))
-   #gcv <-  -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + 2*traceH/(length(y0)-traceH)*sum((y0-bs.mu)^2/(bs.mu*(1-bs.mu)))
+    # gcv = -sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + traceH/(length(y0)-traceHW)*sum(y0*(y0-bs.mu))
+    #gcv <-  -2*sum(y0*log(bs.mu/(1-bs.mu))+log(1-bs.mu)) + 2*traceH/(length(y0)-traceH)*sum((y0-bs.mu)^2/(bs.mu*(1-bs.mu)))
     #gcv <- mean((y0 - fitted.values)^2/wt)/(1-traceH/length(y0))^2
     indicator <- 1*(j==MaxIter)
     return(c(gcv,indicator))
@@ -417,36 +370,6 @@ pspline.gcv5 <- function(y0,xmat,qv=1,size=1,deg = 3,nknots=5,catv=NULL,
   return(lam.value)
 }
 
-##### predict based on pspline link function ######
 
-predict.pspline5 <- function(est.obj,newdata)
-{
-  
-  deg <- est.obj$deg
-  nknots <- est.obj$nknots
-  knots <- est.obj$knots
-  d.value <- est.obj$d.value
-  qv <- est.obj$qv 
-  est <- est.obj$est
-  atu <- est.obj$atu
-  delta.est <- est.obj$delta
-  catv<- est.obj$catv
-  center <- est.obj$center
-  sd.value <- est.obj$sd.value
-  
-  newdatas <- t((t(newdata) - center)/sd.value)
-  newdatas[,catv] <- newdata[,catv]
-  
-  eta.new <- newdatas%*%est
-  q.value <- (eta.new/atu+1)/2
-  Ut <- pgenbeta(q.value,shape1 = (d.value+1)/2,shape2 = (d.value+1)/2,shape3 = 1,scale = 1  )
-  
-  bs.value <- bs(Ut,knots=knots[c(-1,-length(knots))],degree=deg,Boundary.knots = c(0,1),intercept=TRUE)
-  
-  eta.bs <- bs.value%*%delta.est
-  prob.est <- 1/(1+exp(-eta.bs))
-  return(prob.est)
-  
-}
 
-print(c('psplinelink5','pspline.gcv5','predict.pspline5'))
+print(c('psplinelink3','pspline.gcv3'))

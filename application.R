@@ -98,23 +98,76 @@ gev.fit0<- gev.mle.new(y0 = weco$kwit,x0 = as.matrix(weco[,c("sex","dex")]),par0
 splogit.fit0 <- splogit.mle(y0 = weco$kwit,x0 = as.matrix(weco[,c("sex","dex")]),par0 = init.value,intervalr = c(0,5))
 gam.fit0<- gam(kwit~sex+s(dex),weco,family = binomial(link = 'logit'))
 
+robit.fit0$nu
+gev.fit0$est[4]
+splogit.fit0$r
 
 
-dfp <- cbind(weco[,c("sex","dex","kwit")],logit.fit0$fitted.value,probit.fit0$fitted.values,robit.fit0$fitted.values,gev.fit0$fitted.values,splogit.fit0$fitted.values,pspline.fit.wm0$fitted.values,pspline.fit.m0$fitted.values,gam.fit0$fitted.values)
 
-colnames(dfp) <- c('sex','dex',"kwit",'logit','probit','robit','GEV','splogit','pspline_wm','pspline_m','gam')
+dfp <- cbind(weco[,c("sex","dex","kwit")],logit.fit0$fitted.value,probit.fit0$fitted.values,robit.fit0$fitted.values,gev.fit0$fitted.values,splogit.fit0$fitted.values,pspline.fit.m0$fitted.values,gam.fit0$fitted.values)
+
+colnames(dfp) <- c('sex','dex',"kwit",'logit','probit','robit','GEV','splogit','MPS',"GAM")
+
+write.csv(dfp,"dfp.csv",row.names = FALSE)
 library(reshape2)
 df.melt <- melt(dfp,value.name = 'prob',id.vars = c('sex','dex','kwit'),variable.name = 'link')
-df.melt$link <- as.factor(df.melt$link)
+df.melt$link <- factor(df.melt$link,levels = c("MPS","logit","probit","robit","GEV","splogit","GAM"))
 df.melt$sex <- as.factor(df.melt$sex)
 levels(df.melt$sex) <- c("sex 0"," sex 1")
 library(ggplot2)
+library(plyr)
+
+df_dex <- ddply(df.melt, .(sex,dex,kwit),summarize,lengthdex = length(dex))
 
 pdf("document/figures/application.pdf",width = 8,height = 4)
- ggplot(subset(df.melt,link%in%c("logit","robit","GEV","pspline_m")),aes(x=dex,y=prob,linetype=link,color=link))+geom_line()+geom_point(aes(x=dex,y=kwit),colour="black",size=1)+facet_wrap(~sex)+theme_bw()+theme(strip.background = element_rect(fill='white'))
+ ggplot()+geom_line(data = subset(df.melt,link%in%c("MPS","robit","GEV","logit","splogit")),aes(x=dex,y=prob,linetype=link))+geom_errorbar(data= df_dex,aes(x = dex, y = kwit,ymax = kwit + lengthdex*0.0005, ymin=kwit- lengthdex*0.0005 ),width = 0)+facet_wrap(~sex)+theme_bw()+theme(strip.background = element_blank())+ 
+   scale_linetype_discrete(name ="link", breaks = c("MPS","logit","robit","GEV","splogit"),labels =c("MPS","logit","robit(0.454)","GEV(1.214)","splogit(0.073)"))
+   
 dev.off()
 
 
 
 
+##### bootstrap ####
+set.seed(2338)
+B <- 100
+nr  <- nrow(weco)
+coefmat <- matrix(0,B,2)
+predmat <- matrix(0,B,nr)
+for(b in 1:B)
+{
+  indexb <- sample(nr,nr,replace = TRUE)
+  datb <- weco[indexb,]
+  lam.mb<- pspline.gcv5(y0 = datb$kwit,xmat = datb[,c('sex','dex')],qv=1,catv = 'sex',monotone = TRUE,nknots = 11,beta0 = c(1,1),MaxIter = 1000,lamv=10^seq(-5,5,length=100))
+  
+  pspline.fit.mb <- psplinelink5(y0 = datb$kwit,xmat = datb[,c('sex','dex')],qv=1,catv = 'sex',monotone = TRUE,nknots = 11,beta0 = c(1,1),lambda=lam.mb,MaxIter = 1000)
  
+  coefmat[b,] <- pspline.fit.mb$est
+  predmat[b,] <- predict.pspline5(est.obj = pspline.fit.mb,newdata = weco[,c("sex","dex")])
+  print(b)
+}
+
+save(coefmat,predmat,file= "document/bootstrap.RData")
+apply(coefmat,2,sd)
+
+df0 <- df.melt[df.melt$link=="MPS",]
+df0
+
+gj <- ggplot()
+for(j in 1:B)
+{
+  dfj <- cbind(weco[,c("sex","dex","kwit")],y = predmat[j,])
+  dfj$sex <- as.factor(dfj$sex)
+  levels(dfj$sex) <- c("sex 0"," sex 1")
+  gj <- gj + geom_line(data = dfj, aes(x=dex,y=y),color="grey") 
+}
+
+pdf("document/figures/linkbootstrap.pdf",width = 8,height = 4)
+gj+  geom_line(data=df0,aes(x = dex,y=prob)) + facet_wrap(~sex) + theme_bw()+
+  theme(strip.background = element_blank())
+dev.off()
+
+
+
+
+

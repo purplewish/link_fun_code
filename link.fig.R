@@ -113,23 +113,23 @@ dev.off()
 pdf("document/figures/symmetric_link.pdf",width = 6,height = 4)
 label.sym <- c('logit',"probit",expression(paste(nu,'=',1,sep=' ')),expression(paste(nu,'=',2,sep=' ')))
 ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
-  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(color='logit'))+
-  stat_function(fun = function(x) pnorm(x,0,1),aes(color="probit"))+
-  stat_function(fun = function(x) pt(x,df = 1),aes(color = "t1"))+
-  stat_function(fun = function(x) pt(x,df = 2),aes(color = "t2"))+
-  scale_colour_manual(name='link',values=c('logit'='black','probit'="blue",'t1'="green",'t2'='red'),labels= label.sym,breaks=c('logit','probit','t1','t2'))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
+  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(linetype='logit'))+
+  stat_function(fun = function(x) pnorm(x,0,1),aes(linetype="probit"))+
+  stat_function(fun = function(x) pt(x,df = 1),aes(linetype = "t1"))+
+  stat_function(fun = function(x) pt(x,df = 2),aes(linetype = "t2"))+
+  scale_linetype_manual(name='link',values=c('logit'=1,'probit'=2,'t1'=3,'t2'=4),labels= label.sym,breaks=c('logit','probit','t1','t2'))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
 dev.off()
 
 
 pdf("document/figures/asymmetric_link.pdf",width = 6,height = 4)
 label.asym <- c(paste('r','=',0.2,sep=' '),paste('r','=',5,sep=''),expression(paste(xi,'=',-0.5,sep=' ')),expression(paste(xi,'=',0.5,sep=' ')))
 ggplot(data.frame(x=c(-7, 7)), aes(x)) + 
-  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(color='logit'))+
-  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 0.2), aes(color='splogit1'))+
-  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 5), aes(color='splogit2'))+
-  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = -0.5), aes(color='gev1' ))+
-  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = 0.5), aes(color='gev2' ))+
-  scale_colour_manual(name='link',values=c('logit'='black','splogit1'="blue",'splogit2'='green','gev1'='red','gev2'='orange'),labels=c('logit',label.asym),breaks=c('logit',paste('splogit',1:2,sep=''),paste("gev",1:2,sep="")))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
+  stat_function(fun=function(x) plogis(x,location = 0,scale = 1),aes(linetype='logit'))+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 0.2), aes(linetype='splogit1'))+
+  stat_function(fun = function(x) splogit.link(eta0 = x,r0 = 5), aes(linetype='splogit2'))+
+  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = -0.5), aes(linetype='gev1' ))+
+  stat_function(fun = function(x) 1-pgev(-x,loc = 0,scale = 1,shape = 0.5), aes(linetype='gev2' ))+
+  scale_linetype_manual(name='link',values=c('logit'=1,'splogit1'=2,'splogit2'=3,'gev1'=4,'gev2'=5),labels=c('logit',label.asym),breaks=c('logit',paste('splogit',1:2,sep=''),paste("gev",1:2,sep="")))+theme_bw()+theme(legend.text.align=0)+ylab("P(Y=1)")
 dev.off()
 
 
@@ -138,25 +138,27 @@ dev.off()
 
 f1 <- function(x1)
 {
-  x1^2+x1-3
-}
-
-f2 <- function(x1)
-{
-  -0.2*(x1-3)^2-0.15*x1+3
-}
-
-f3 <- function(x1)
-{
   0.2*(x1+1)^3-2
 }
 
 
+f2 <- function(x1)
+{
+  x1^2+x1-3
+}
+
+f3 <- function(x1)
+{
+  -0.2*(x1-3)^2-0.15*x1+3
+}
+
+
+
 pdf("document/figures/curve.pdf",width = 6,height = 4)
 ggplot(data.frame(x=c(-3, 3)), aes(x)) + 
-  stat_function(fun = f1,aes(color='case1'))+
-  stat_function(fun = f2,aes(color='case2'))+
-  stat_function(fun = f3,aes(color='case3'))+
-  scale_colour_manual(name='case',values=c('case1'='black','case2'="blue",'case3'='green'),labels=c("case1","case2","case3"),breaks=c("case1","case2","case3"))+theme_bw()+theme(legend.text.align=0)+ylab(expression(eta))
+  stat_function(fun = f1,aes(linetype='case1'))+
+  stat_function(fun = f2,aes(linetype='case2'))+
+  stat_function(fun = f3,aes(linetype='case3'))+
+  scale_linetype_manual(name='case',values=c('case1'='solid','case2'="dotted",'case3'='dashed'),labels=c("case1","case2","case3"),breaks=c("case1","case2","case3"))+theme_bw()+theme(legend.text.align=0)+ylab(expression(eta))
 dev.off()
 
